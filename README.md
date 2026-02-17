@@ -4,13 +4,17 @@ A personal budget tracking application with FastAPI backend and React TypeScript
 
 ## Features
 
-- Track income and expenses
-- Automatic category creation
-- Dashboard with statistics and charts
-- Transaction history with filters
-- CSV export
-- JWT authentication
-- Responsive design
+- 💰 Track income and expenses
+- 🏷️ Automatic category creation
+- 📊 Dashboard with statistics and charts
+- 📈 Transaction history with filters
+- 📤 CSV export
+- 🔐 JWT authentication
+- 🌍 Multi-language support (English/Russian)
+- 💱 Multi-currency support (USD/RUB) with exchange rates
+- 👤 User account management (soft delete, admin panel)
+- 📱 Responsive design
+- 🧪 Automated testing
 
 ## Architecture
 
@@ -34,7 +38,7 @@ scrooge/
 
 1. Clone the repository:
 ```bash
-git clone <repo-url>
+git clone https://github.com/VNKorchagin/scrooge.git
 cd scrooge
 ```
 
@@ -54,7 +58,12 @@ docker-compose up -d --build
 docker-compose exec backend alembic upgrade head
 ```
 
-5. Access the application at `http://localhost`
+5. (Optional) Create admin user:
+```bash
+docker-compose exec backend python -m app.cli create-admin admin your-password
+```
+
+6. Access the application at `http://localhost`
 
 ### HTTPS Setup (Production)
 
@@ -109,6 +118,18 @@ npm run dev
 
 The frontend will be available at `http://localhost:5173`
 
+### CLI Commands
+
+The backend includes CLI commands for administrative tasks:
+
+```bash
+# Create admin user
+python -m app.cli create-admin <username> <password>
+
+# List all users
+python -m app.cli list-users
+```
+
 ## API Documentation
 
 When running locally, API docs are available at:
@@ -117,18 +138,54 @@ When running locally, API docs are available at:
 
 ### Main Endpoints
 
+#### Authentication
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/api/v1/auth/register` | POST | Register new user |
-| `/api/v1/auth/login` | POST | Login and get token |
-| `/api/v1/auth/me` | GET | Get current user |
-| `/api/v1/categories` | GET | List/search categories |
-| `/api/v1/categories` | POST | Create category |
-| `/api/v1/transactions` | GET | List transactions |
-| `/api/v1/transactions` | POST | Create transaction |
-| `/api/v1/transactions/{id}` | DELETE | Delete transaction |
-| `/api/v1/stats/dashboard` | GET | Get dashboard stats |
-| `/api/v1/export/csv` | GET | Export transactions to CSV |
+| `/v1/auth/register` | POST | Register new user |
+| `/v1/auth/login` | POST | Login and get token |
+| `/v1/auth/me` | GET | Get current user |
+| `/v1/auth/me` | PATCH | Update user settings (language, currency) |
+| `/v1/auth/me` | DELETE | Delete own account (soft delete) |
+
+#### Categories
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/v1/categories` | GET | List/search categories |
+| `/v1/categories` | POST | Create category |
+
+#### Transactions
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/v1/transactions` | GET | List transactions |
+| `/v1/transactions` | POST | Create transaction |
+| `/v1/transactions/{id}` | DELETE | Delete transaction |
+
+#### Statistics
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/v1/stats/dashboard` | GET | Get dashboard stats |
+
+#### Currency
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/v1/currency/rate` | GET | Get exchange rate |
+| `/v1/currency/convert` | POST | Preview currency conversion |
+| `/v1/currency/apply` | POST | Apply currency change |
+
+#### Export
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/v1/export/csv` | GET | Export transactions to CSV |
+
+#### Admin (Admin users only)
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/v1/users/admin/users` | GET | List all users |
+| `/v1/users/admin/users/{id}` | GET | Get user details |
+| `/v1/users/admin/users/{id}/restore` | POST | Restore deleted user |
+| `/v1/users/admin/users/{id}` | DELETE | Delete user (soft/hard) |
+| `/v1/users/admin/users/{id}/make-admin` | POST | Grant admin privileges |
+| `/v1/users/admin/users/{id}/revoke-admin` | POST | Revoke admin privileges |
 
 ## Database Schema
 
@@ -136,6 +193,11 @@ When running locally, API docs are available at:
 - `id`: Primary key
 - `username`: Unique username
 - `hashed_password`: Bcrypt hashed password
+- `language`: User language ('en' or 'ru')
+- `currency`: User currency ('USD' or 'RUB')
+- `is_active`: Soft delete flag
+- `is_admin`: Admin privileges flag
+- `deleted_at`: Deletion timestamp
 - `created_at`: Timestamp
 
 ### Categories
@@ -165,6 +227,76 @@ When running locally, API docs are available at:
 - `confidence`: Prediction confidence
 - `created_at`: Timestamp
 
+## Multi-language Support
+
+The application supports:
+- 🇺🇸 English (en)
+- 🇷🇺 Russian (ru)
+
+Language can be changed in the settings modal (gear icon in the header).
+
+## Multi-currency Support
+
+The application supports:
+- 💵 US Dollar (USD)
+- 🇷🇺 Russian Ruble (RUB)
+
+Features:
+- Real-time exchange rates from Central Bank of Russia
+- Currency conversion preview before applying
+- All transactions recalculated when changing currency
+
+## User Management
+
+### Soft Delete
+Users can delete their own accounts through the settings modal. This performs a soft delete:
+- Account is marked as inactive
+- User cannot log in anymore
+- Data is preserved and can be restored by admin
+
+### Admin Panel
+Admin users can:
+- View all users and their statistics
+- Restore deleted users
+- Permanently delete users (hard delete)
+- Grant/revoke admin privileges
+
+To create an admin user:
+```bash
+docker-compose exec backend python -m app.cli create-admin admin password123
+```
+
+## Testing
+
+Run tests locally:
+```bash
+cd backend
+source venv/bin/activate
+pytest -v
+```
+
+Current test coverage:
+- Password hashing (bcrypt with 72-byte limit)
+- JWT token handling
+- Currency conversion
+- Security features
+
+Tests are automatically run in GitHub Actions on every push.
+
+## CI/CD
+
+The project includes GitHub Actions workflows:
+- **Tests**: Run on every push and PR
+- **Deploy**: Automatic deployment to server on push to main branch
+
+Configure GitHub Secrets:
+- `SSH_PRIVATE_KEY`: SSH key for server access
+- `SERVER_HOST`: Server IP or domain
+- `SERVER_USER`: SSH username
+- `DEPLOY_PATH`: Path to project on server
+- `DB_PASSWORD`: Database password
+- `SECRET_KEY`: JWT secret key
+
 ## Future Features
 
 - [ ] Bank statement import (PDF/CSV)
@@ -176,13 +308,14 @@ When running locally, API docs are available at:
 
 ## Security
 
-- Passwords hashed with bcrypt
+- Passwords hashed with bcrypt (72-byte limit handling)
 - JWT tokens for authentication
 - CORS configured for production domain
 - SQL injection prevention via SQLAlchemy ORM
 - Ownership verification for all resources
+- Soft delete for data protection
+- Admin privileges for sensitive operations
 
 ## License
 
 MIT
-# Scrooge
