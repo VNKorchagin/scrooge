@@ -31,6 +31,22 @@ ENV/
 env/
 .venv/
 
+# Node.js
+node_modules/
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Frontend build
+frontend/dist/
+frontend/dist-ssr/
+*.local
+
+# TypeScript
+*.tsbuildinfo
+
 # IDE
 .idea/
 .vscode/
