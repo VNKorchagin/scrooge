@@ -185,3 +185,4 @@ When running locally, API docs are available at:
 ## License
 
 MIT
+# Scrooge
