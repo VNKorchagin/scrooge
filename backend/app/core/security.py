@@ -33,6 +33,9 @@ def get_password_hash(password: str) -> str:
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     to_encode = data.copy()
+    # Convert sub to string (JWT spec requires string)
+    if "sub" in to_encode:
+        to_encode["sub"] = str(to_encode["sub"])
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
     else:
@@ -45,13 +48,13 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
 def decode_token(token: str) -> Optional[TokenPayload]:
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
-        user_id: int = payload.get("sub")
-        if user_id is None:
+        user_id_str = payload.get("sub")
+        if user_id_str is None:
             return None
+        # Convert string back to int
+        user_id = int(user_id_str)
         return TokenPayload(user_id=user_id)
-    except JWTError as e:
-        # Log error for debugging
-        print(f"JWT decode error: {e}")
+    except (JWTError, ValueError) as e:
         return None
 
 
