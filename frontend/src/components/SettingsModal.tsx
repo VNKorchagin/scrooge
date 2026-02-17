@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/stores/authStore';
-import { currencyApi } from '@/api/client';
+import { currencyApi, apiClient } from '@/api/client';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -199,11 +199,89 @@ export const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
           </div>
         )}
 
+        {/* Delete Account Section */}
+        <div className="border-t border-gray-200 pt-6 mt-6">
+          <h3 className="text-lg font-medium text-danger-600 mb-4">
+            {t('settings.deleteAccount') || 'Delete Account'}
+          </h3>
+          <p className="text-sm text-gray-600 mb-4">
+            {t('settings.deleteAccountWarning') || 'This action cannot be undone. All your data will be marked as deleted.'}
+          </p>
+          <DeleteAccountSection onClose={onClose} />
+        </div>
+
         <button
           onClick={onClose}
-          className="w-full btn-secondary"
+          className="w-full btn-secondary mt-6"
         >
           {t('transaction.cancel')}
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// Separate component for delete account to manage its own state
+const DeleteAccountSection = ({ onClose }: { onClose: () => void }) => {
+  const { t, logout } = useAuthStore();
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [confirmText, setConfirmText] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    if (confirmText !== 'DELETE') return;
+    
+    setIsDeleting(true);
+    try {
+      await apiClient.delete('/users/me', {
+        data: { confirm: true }
+      });
+      logout();
+      window.location.href = '/login';
+    } catch (error) {
+      console.error('Failed to delete account:', error);
+      alert(t('settings.deleteFailed') || 'Failed to delete account');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  if (!showConfirm) {
+    return (
+      <button
+        onClick={() => setShowConfirm(true)}
+        className="w-full py-2 px-4 border border-danger-300 text-danger-600 rounded-lg hover:bg-danger-50 transition-colors"
+      >
+        {t('settings.deleteAccount') || 'Delete Account'}
+      </button>
+    );
+  }
+
+  return (
+    <div className="bg-danger-50 p-4 rounded-lg">
+      <p className="text-sm text-danger-700 mb-3">
+        {t('settings.deleteConfirmText') || 'Type DELETE to confirm:'}
+      </p>
+      <input
+        type="text"
+        value={confirmText}
+        onChange={(e) => setConfirmText(e.target.value)}
+        placeholder="DELETE"
+        className="w-full px-3 py-2 border border-danger-300 rounded-lg mb-3"
+      />
+      <div className="flex gap-2">
+        <button
+          onClick={() => setShowConfirm(false)}
+          className="flex-1 py-2 px-4 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+        >
+          {t('transaction.cancel')}
+        </button>
+        <button
+          onClick={handleDelete}
+          disabled={confirmText !== 'DELETE' || isDeleting}
+          className="flex-1 py-2 px-4 bg-danger-600 text-white rounded-lg hover:bg-danger-700 disabled:opacity-50"
+        >
+          {isDeleting ? '...' : (t('settings.confirmDelete') || 'Permanently Delete')}
         </button>
       </div>
     </div>

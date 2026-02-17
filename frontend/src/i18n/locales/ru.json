@@ -63,7 +63,12 @@
     "language": "Язык",
     "currency": "Валюта",
     "languageChanged": "Язык изменен",
-    "currencyChanged": "Валюта изменена"
+    "currencyChanged": "Валюта изменена",
+    "deleteAccount": "Удалить аккаунт",
+    "deleteAccountWarning": "Это действие нельзя отменить. Ваш аккаунт будет деактивирован.",
+    "deleteConfirmText": "Введите DELETE для подтверждения:",
+    "confirmDelete": "Удалить навсегда",
+    "deleteFailed": "Не удалось удалить аккаунт"
   },
   "currency": {
     "USD": "Доллар США",

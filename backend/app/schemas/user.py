@@ -37,7 +37,23 @@ class User(UserBase):
     id: int
     language: str = "en"
     currency: str = "USD"
+    is_active: bool = True
+    is_admin: bool = False
     created_at: datetime
+
+
+class UserAdminView(User):
+    """Extended user view for admin."""
+    is_deleted: bool = False
+    transaction_count: int = 0
+    total_income: float = 0.0
+    total_expense: float = 0.0
+
+
+class UserDeleteRequest(BaseModel):
+    """Request to delete a user."""
+    confirm: bool = False
+    reason: str | None = None
 
 
 class Token(BaseModel):

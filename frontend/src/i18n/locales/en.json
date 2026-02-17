@@ -63,7 +63,12 @@
     "language": "Language",
     "currency": "Currency",
     "languageChanged": "Language changed successfully",
-    "currencyChanged": "Currency changed successfully"
+    "currencyChanged": "Currency changed successfully",
+    "deleteAccount": "Delete Account",
+    "deleteAccountWarning": "This action cannot be undone. Your account will be deactivated.",
+    "deleteConfirmText": "Type DELETE to confirm account deletion:",
+    "confirmDelete": "Permanently Delete",
+    "deleteFailed": "Failed to delete account"
   },
   "currency": {
     "USD": "US Dollar",
