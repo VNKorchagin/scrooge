@@ -6,6 +6,10 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Copy alembic configuration
+COPY alembic.ini .
+COPY alembic/ ./alembic/
+
 # Copy application code
 COPY app/ ./app/
 
