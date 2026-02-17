@@ -2,7 +2,7 @@ from fastapi import APIRouter
 
 from app.routers import auth, categories, transactions, stats, export
 
-api_router = APIRouter(prefix="/api/v1")
+api_router = APIRouter(prefix="/v1")
 
 api_router.include_router(auth.router, prefix="/auth", tags=["auth"])
 api_router.include_router(categories.router, prefix="/categories", tags=["categories"])
