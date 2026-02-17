@@ -1,7 +1,7 @@
 """CLI commands for administrative tasks."""
 import asyncio
 import sys
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from app.core.config import settings
 from app.core.security import get_password_hash
 from app.models.user import User
@@ -11,9 +11,9 @@ from app.core.database import Base
 async def create_admin(username: str, password: str):
     """Create an admin user."""
     engine = create_async_engine(settings.DATABASE_URL)
-    AsyncSessionLocal = async_sessionmaker(engine, class_=type('AsyncSession', (), {}))
+    async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
     
-    async with AsyncSessionLocal() as session:
+    async with async_session() as session:
         # Check if user exists
         from sqlalchemy import select
         result = await session.execute(select(User).where(User.username == username))
@@ -35,14 +35,16 @@ async def create_admin(username: str, password: str):
             session.add(user)
             await session.commit()
             print(f"Admin user '{username}' created successfully")
+    
+    await engine.dispose()
 
 
 async def list_users():
     """List all users."""
     engine = create_async_engine(settings.DATABASE_URL)
-    AsyncSessionLocal = async_sessionmaker(engine, class_=type('AsyncSession', (), {}))
+    async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
     
-    async with AsyncSessionLocal() as session:
+    async with async_session() as session:
         from sqlalchemy import select
         result = await session.execute(select(User))
         users = result.scalars().all()
@@ -52,6 +54,8 @@ async def list_users():
         for user in users:
             deleted = "Yes" if user.deleted_at else "No"
             print(f"{user.id:<5} {user.username:<20} {'Yes' if user.is_admin else 'No':<6} {'Yes' if user.is_active else 'No':<7} {deleted:<8}")
+    
+    await engine.dispose()
 
 
 if __name__ == "__main__":
