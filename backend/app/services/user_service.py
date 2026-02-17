@@ -4,7 +4,7 @@ from typing import Optional
 
 from app.models.user import User
 from app.core.security import get_password_hash, verify_password
-from app.schemas.user import UserCreate
+from app.schemas.user import UserCreate, UserUpdate
 
 
 class UserService:
@@ -28,6 +28,18 @@ class UserService:
         await db.commit()
         await db.refresh(db_user)
         return db_user
+
+    @staticmethod
+    async def update(db: AsyncSession, user: User, update_data: UserUpdate) -> User:
+        """Update user settings."""
+        if update_data.language is not None:
+            user.language = update_data.language
+        if update_data.currency is not None:
+            user.currency = update_data.currency
+        
+        await db.commit()
+        await db.refresh(user)
+        return user
 
     @staticmethod
     async def authenticate(db: AsyncSession, username: str, password: str) -> Optional[User]:

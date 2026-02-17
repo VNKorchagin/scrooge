@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.core.security import create_access_token, get_current_user_id, get_password_hash
 from app.core.config import settings
-from app.schemas.user import UserCreate, UserLogin, Token, User
+from app.schemas.user import UserCreate, UserLogin, Token, User, UserUpdate
 from app.services.user_service import UserService
 
 router = APIRouter()
@@ -59,3 +59,21 @@ async def get_me(
             detail="User not found"
         )
     return user
+
+
+@router.patch("/me", response_model=User)
+async def update_me(
+    update_data: UserUpdate,
+    current_user_id: int = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db)
+):
+    """Update current user settings (language, currency)."""
+    user = await UserService.get_by_id(db, current_user_id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    
+    updated_user = await UserService.update(db, user, update_data)
+    return updated_user
