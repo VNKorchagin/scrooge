@@ -1,6 +1,7 @@
 import { create } from 'zustand';
+import i18n from '@/i18n';
 import { User, Token } from '@/types';
-import { authApi } from '@/api/client';
+import { authApi, userApi } from '@/api/client';
 
 interface AuthState {
   token: string | null;
@@ -99,6 +100,29 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   clearError: () => set({ error: null }),
+
+  updateLanguage: async (language: string) => {
+    try {
+      const user = await userApi.updateSettings({ language });
+      set({ user });
+      i18n.changeLanguage(language);
+      return true;
+    } catch (error) {
+      console.error('Failed to update language:', error);
+      return false;
+    }
+  },
+
+  updateCurrency: async (currency: string) => {
+    try {
+      const user = await userApi.updateSettings({ currency });
+      set({ user });
+      return true;
+    } catch (error) {
+      console.error('Failed to update currency:', error);
+      return false;
+    }
+  },
 }));
 
 // Initialize auth state on load

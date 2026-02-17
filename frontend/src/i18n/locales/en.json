@@ -1,0 +1,88 @@
+{
+  "app": {
+    "name": "Scrooge",
+    "tagline": "Track your budget wisely"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "addTransaction": "Add Transaction",
+    "history": "History",
+    "logout": "Logout"
+  },
+  "auth": {
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "username": "Username",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "createAccount": "Create Account",
+    "loginFailed": "Login failed",
+    "registrationFailed": "Registration failed"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "income": "Income",
+    "expense": "Expense",
+    "balance": "Balance",
+    "thisMonth": "This Month",
+    "thisYear": "This Year",
+    "allTime": "All Time",
+    "expensesByCategory": "Expenses by Category",
+    "recentTransactions": "Recent Transactions",
+    "viewAll": "View All",
+    "addTransaction": "Add Transaction"
+  },
+  "transaction": {
+    "add": "Add Transaction",
+    "edit": "Edit Transaction",
+    "type": "Transaction Type",
+    "income": "Income",
+    "expense": "Expense",
+    "amount": "Amount",
+    "category": "Category",
+    "date": "Date & Time",
+    "description": "Description",
+    "save": "Save Transaction",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "noTransactions": "No transactions yet",
+    "searchCategory": "Enter or select category"
+  },
+  "history": {
+    "title": "Transaction History",
+    "filters": "Filters",
+    "type": "Type",
+    "from": "From",
+    "to": "To",
+    "all": "All",
+    "exportCSV": "Export CSV",
+    "noTransactions": "No transactions found"
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "currency": "Currency",
+    "languageChanged": "Language changed successfully",
+    "currencyChanged": "Currency changed successfully"
+  },
+  "currency": {
+    "USD": "US Dollar",
+    "RUB": "Russian Ruble",
+    "changeCurrency": "Change Currency",
+    "currentRate": "Current Rate",
+    "preview": "Preview",
+    "currentIncome": "Current Income",
+    "currentExpense": "Current Expense",
+    "newIncome": "New Income",
+    "newExpense": "New Expense",
+    "transactionCount": "Transactions to convert",
+    "confirmConversion": "I confirm the conversion",
+    "apply": "Apply Conversion",
+    "conversionNote": "All future transactions will use the new currency"
+  },
+  "errors": {
+    "required": "This field is required",
+    "invalidAmount": "Please enter a valid amount",
+    "serverError": "Server error. Please try again later."
+  }
+}

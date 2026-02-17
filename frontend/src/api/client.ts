@@ -115,6 +115,32 @@ export const statsApi = {
   },
 };
 
+// Currency API
+export const currencyApi = {
+  getRate: async (from: string, to: string) => {
+    const response = await apiClient.get(`/currency/rate?from_currency=${from}&to_currency=${to}`);
+    return response.data;
+  },
+  
+  getPreview: async (newCurrency: string) => {
+    const response = await apiClient.post(`/currency/convert?new_currency=${newCurrency}`);
+    return response.data;
+  },
+  
+  applyConversion: async (newCurrency: string) => {
+    const response = await apiClient.post(`/currency/apply?new_currency=${newCurrency}&confirm=true`);
+    return response.data;
+  },
+};
+
+// User Settings API
+export const userApi = {
+  updateSettings: async (data: { language?: string; currency?: string }) => {
+    const response = await apiClient.patch('/auth/me', data);
+    return response.data;
+  },
+};
+
 // Export API
 export const exportApi = {
   exportCSV: async (params?: { type?: string; date_from?: string; date_to?: string }) => {

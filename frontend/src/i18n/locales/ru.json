@@ -1,0 +1,88 @@
+{
+  "app": {
+    "name": "Scrooge",
+    "tagline": "Умный учет бюджета"
+  },
+  "nav": {
+    "dashboard": "Главная",
+    "addTransaction": "Добавить",
+    "history": "История",
+    "logout": "Выйти"
+  },
+  "auth": {
+    "signIn": "Вход",
+    "signUp": "Регистрация",
+    "username": "Имя пользователя",
+    "password": "Пароль",
+    "confirmPassword": "Подтвердите пароль",
+    "createAccount": "Создать аккаунт",
+    "loginFailed": "Ошибка входа",
+    "registrationFailed": "Ошибка регистрации"
+  },
+  "dashboard": {
+    "title": "Главная",
+    "income": "Доходы",
+    "expense": "Расходы",
+    "balance": "Баланс",
+    "thisMonth": "Этот месяц",
+    "thisYear": "Этот год",
+    "allTime": "За все время",
+    "expensesByCategory": "Расходы по категориям",
+    "recentTransactions": "Последние операции",
+    "viewAll": "Смотреть все",
+    "addTransaction": "Добавить операцию"
+  },
+  "transaction": {
+    "add": "Добавить операцию",
+    "edit": "Редактировать",
+    "type": "Тип операции",
+    "income": "Доход",
+    "expense": "Расход",
+    "amount": "Сумма",
+    "category": "Категория",
+    "date": "Дата и время",
+    "description": "Описание",
+    "save": "Сохранить",
+    "cancel": "Отмена",
+    "delete": "Удалить",
+    "noTransactions": "Пока нет операций",
+    "searchCategory": "Введите или выберите категорию"
+  },
+  "history": {
+    "title": "История операций",
+    "filters": "Фильтры",
+    "type": "Тип",
+    "from": "С",
+    "to": "По",
+    "all": "Все",
+    "exportCSV": "Экспорт CSV",
+    "noTransactions": "Операции не найдены"
+  },
+  "settings": {
+    "title": "Настройки",
+    "language": "Язык",
+    "currency": "Валюта",
+    "languageChanged": "Язык изменен",
+    "currencyChanged": "Валюта изменена"
+  },
+  "currency": {
+    "USD": "Доллар США",
+    "RUB": "Российский рубль",
+    "changeCurrency": "Сменить валюту",
+    "currentRate": "Текущий курс",
+    "preview": "Предпросмотр",
+    "currentIncome": "Текущие доходы",
+    "currentExpense": "Текущие расходы",
+    "newIncome": "Новые доходы",
+    "newExpense": "Новые расходы",
+    "transactionCount": "Операций для конвертации",
+    "confirmConversion": "Я подтверждаю конвертацию",
+    "apply": "Применить",
+    "conversionNote": "Все будущие операции будут в новой валюте"
+  },
+  "errors": {
+    "required": "Обязательное поле",
+    "invalidAmount": "Введите корректную сумму",
+    "serverError": "Ошибка сервера. Попробуйте позже."
+  }
+}
