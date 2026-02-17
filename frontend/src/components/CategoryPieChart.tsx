@@ -42,7 +42,7 @@ export const CategoryPieChart = ({ data }: CategoryPieChartProps) => {
               fill="#8884d8"
               dataKey="value"
             >
-              {chartData.map((entry, index) => (
+              {chartData.map((_entry, index) => (
                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
               ))}
             </Pie>
