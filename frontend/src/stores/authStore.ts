@@ -16,6 +16,8 @@ interface AuthState {
   fetchUser: () => Promise<void>;
   clearError: () => void;
   init: () => void;
+  updateLanguage: (language: string) => Promise<boolean>;
+  updateCurrency: (currency: string) => Promise<boolean>;
 }
 
 // Helper to get token from storage

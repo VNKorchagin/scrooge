@@ -207,7 +207,7 @@ export const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
           <p className="text-sm text-gray-600 mb-4">
             {t('settings.deleteAccountWarning') || 'This action cannot be undone. All your data will be marked as deleted.'}
           </p>
-          <DeleteAccountSection onClose={onClose} logout={logout} />
+          <DeleteAccountSection logout={logout} />
         </div>
 
         <button
@@ -222,7 +222,7 @@ export const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
 };
 
 // Separate component for delete account to manage its own state
-const DeleteAccountSection = ({ onClose, logout }: { onClose: () => void; logout: () => void }) => {
+const DeleteAccountSection = ({ logout }: { logout: () => void }) => {
   const { t } = useTranslation();
   const [showConfirm, setShowConfirm] = useState(false);
   const [confirmText, setConfirmText] = useState('');
