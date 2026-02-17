@@ -58,9 +58,14 @@ class TransactionService:
         # Get or create category
         category = await CategoryService.get_or_create(db, transaction_data.category_name, user_id)
         
+        # Convert string type to Enum if needed
+        transaction_type = transaction_data.type
+        if isinstance(transaction_type, str):
+            transaction_type = TransactionType(transaction_type)
+        
         transaction = Transaction(
             user_id=user_id,
-            type=transaction_data.type,
+            type=transaction_type,
             amount=transaction_data.amount,
             category_id=category.id,
             category_name=category.name,
