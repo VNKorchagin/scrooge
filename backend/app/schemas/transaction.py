@@ -1,6 +1,6 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from decimal import Decimal
 
 from app.models.transaction import TransactionType
@@ -12,6 +12,15 @@ class TransactionBase(BaseModel):
     category_name: str
     transaction_date: datetime
     description: Optional[str] = None
+    
+    @field_validator('transaction_date')
+    @classmethod
+    def normalize_datetime(cls, v: datetime) -> datetime:
+        """Convert offset-aware datetime to offset-naive (UTC)."""
+        if v.tzinfo is not None:
+            # Convert to UTC and remove timezone info
+            return v.astimezone(timezone.utc).replace(tzinfo=None)
+        return v
 
 
 class TransactionCreate(TransactionBase):
