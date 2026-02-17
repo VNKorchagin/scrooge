@@ -10,7 +10,7 @@ interface SettingsModalProps {
 
 export const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
   const { t, i18n } = useTranslation();
-  const { user, updateLanguage, updateCurrency } = useAuthStore();
+  const { user, updateLanguage, updateCurrency, logout } = useAuthStore();
   
   const [selectedLanguage, setSelectedLanguage] = useState(user?.language || 'en');
   const [selectedCurrency, setSelectedCurrency] = useState(user?.currency || 'USD');
@@ -207,7 +207,7 @@ export const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
           <p className="text-sm text-gray-600 mb-4">
             {t('settings.deleteAccountWarning') || 'This action cannot be undone. All your data will be marked as deleted.'}
           </p>
-          <DeleteAccountSection onClose={onClose} />
+          <DeleteAccountSection onClose={onClose} logout={logout} />
         </div>
 
         <button
@@ -222,8 +222,8 @@ export const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
 };
 
 // Separate component for delete account to manage its own state
-const DeleteAccountSection = ({ onClose }: { onClose: () => void }) => {
-  const { t, logout } = useAuthStore();
+const DeleteAccountSection = ({ onClose, logout }: { onClose: () => void; logout: () => void }) => {
+  const { t } = useTranslation();
   const [showConfirm, setShowConfirm] = useState(false);
   const [confirmText, setConfirmText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
