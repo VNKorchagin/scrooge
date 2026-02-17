@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 import { User, Token } from '@/types';
 import { authApi } from '@/api/client';
 
@@ -15,93 +14,94 @@ interface AuthState {
   logout: () => void;
   fetchUser: () => Promise<void>;
   clearError: () => void;
+  init: () => void;
 }
 
-export const useAuthStore = create<AuthState>()(
-  persist(
-    (set, get) => ({
-      token: null,
-      user: null,
-      isAuthenticated: false,
-      isLoading: false,
-      error: null,
+// Helper to get token from storage
+const getStoredToken = (): string | null => {
+  return localStorage.getItem('token');
+};
 
-      login: async (username: string, password: string) => {
-        set({ isLoading: true, error: null });
-        try {
-          const data: Token = await authApi.login(username, password);
-          set({ 
-            token: data.access_token, 
-            isAuthenticated: true,
-            isLoading: false,
-            error: null 
-          });
-          localStorage.setItem('token', data.access_token);
-          // Fetch user data after login
-          await get().fetchUser();
-        } catch (error) {
-          set({ 
-            isLoading: false, 
-            error: error instanceof Error ? error.message : 'Login failed' 
-          });
-          throw error;
-        }
-      },
+export const useAuthStore = create<AuthState>((set, get) => ({
+  token: getStoredToken(),
+  user: null,
+  isAuthenticated: !!getStoredToken(),
+  isLoading: false,
+  error: null,
 
-      register: async (username: string, password: string) => {
-        set({ isLoading: true, error: null });
-        try {
-          const data: Token = await authApi.register(username, password);
-          set({ 
-            token: data.access_token, 
-            isAuthenticated: true,
-            isLoading: false,
-            error: null 
-          });
-          localStorage.setItem('token', data.access_token);
-          // Fetch user data after registration
-          await get().fetchUser();
-        } catch (error) {
-          set({ 
-            isLoading: false, 
-            error: error instanceof Error ? error.message : 'Registration failed' 
-          });
-          throw error;
-        }
-      },
-
-      logout: () => {
-        localStorage.removeItem('token');
-        set({ 
-          token: null, 
-          user: null, 
-          isAuthenticated: false,
-          error: null 
-        });
-      },
-
-      fetchUser: async () => {
-        try {
-          const user = await authApi.getMe();
-          set({ user });
-        } catch (error) {
-          // If fetching user fails, logout
-          get().logout();
-        }
-      },
-
-      clearError: () => set({ error: null }),
-    }),
-    {
-      name: 'auth-storage',
-      partialize: (state) => ({ token: state.token }),
+  init: () => {
+    const token = getStoredToken();
+    if (token) {
+      set({ token, isAuthenticated: true });
+      get().fetchUser();
     }
-  )
-);
+  },
 
-// Initialize auth state from localStorage
-const token = localStorage.getItem('token');
-if (token) {
-  useAuthStore.setState({ token, isAuthenticated: true });
-  useAuthStore.getState().fetchUser();
+  login: async (username: string, password: string) => {
+    set({ isLoading: true, error: null });
+    try {
+      const data: Token = await authApi.login(username, password);
+      localStorage.setItem('token', data.access_token);
+      set({ 
+        token: data.access_token, 
+        isAuthenticated: true,
+        isLoading: false,
+        error: null 
+      });
+      await get().fetchUser();
+    } catch (error: any) {
+      set({ 
+        isLoading: false, 
+        error: error.response?.data?.detail || 'Login failed'
+      });
+      throw error;
+    }
+  },
+
+  register: async (username: string, password: string) => {
+    set({ isLoading: true, error: null });
+    try {
+      const data: Token = await authApi.register(username, password);
+      localStorage.setItem('token', data.access_token);
+      set({ 
+        token: data.access_token, 
+        isAuthenticated: true,
+        isLoading: false,
+        error: null 
+      });
+      await get().fetchUser();
+    } catch (error: any) {
+      set({ 
+        isLoading: false, 
+        error: error.response?.data?.detail || 'Registration failed'
+      });
+      throw error;
+    }
+  },
+
+  logout: () => {
+    localStorage.removeItem('token');
+    set({ 
+      token: null, 
+      user: null, 
+      isAuthenticated: false,
+      error: null 
+    });
+  },
+
+  fetchUser: async () => {
+    try {
+      const user = await authApi.getMe();
+      set({ user });
+    } catch (error) {
+      get().logout();
+    }
+  },
+
+  clearError: () => set({ error: null }),
+}));
+
+// Initialize auth state on load
+if (typeof window !== 'undefined') {
+  useAuthStore.getState().init();
 }

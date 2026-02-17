@@ -49,7 +49,9 @@ def decode_token(token: str) -> Optional[TokenPayload]:
         if user_id is None:
             return None
         return TokenPayload(user_id=user_id)
-    except JWTError:
+    except JWTError as e:
+        # Log error for debugging
+        print(f"JWT decode error: {e}")
         return None
 
 
