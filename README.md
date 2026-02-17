@@ -275,11 +275,20 @@ source venv/bin/activate
 pytest -v
 ```
 
-Current test coverage:
-- Password hashing (bcrypt with 72-byte limit)
-- JWT token handling
-- Currency conversion
-- Security features
+### Test Coverage (43 tests)
+
+#### Unit Tests
+- **test_security.py** (8 tests): Password hashing, JWT tokens
+- **test_currency_service.py** (11 tests): Currency conversion, validation
+
+#### API Integration Tests
+- **test_api_integration.py** (24 tests):
+  - Authentication (register, login, settings)
+  - Transactions (create, list, filters)
+  - Categories (create, search)
+  - Currency (rates, conversion)
+  - Statistics (dashboard)
+  - Validation errors
 
 Tests are automatically run in GitHub Actions on every push.
 
