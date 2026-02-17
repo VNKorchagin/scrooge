@@ -1,0 +1,80 @@
+name: Deploy to Server
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup SSH
+      uses: webfactory/ssh-agent@v0.8.0
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+    
+    - name: Add server to known hosts
+      run: |
+        mkdir -p ~/.ssh
+        ssh-keyscan -p ${{ secrets.SSH_PORT || '22' }} ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+    
+    - name: Deploy to server
+      env:
+        SERVER_HOST: ${{ secrets.SERVER_HOST }}
+        SERVER_USER: ${{ secrets.SERVER_USER }}
+        SSH_PORT: ${{ secrets.SSH_PORT || '22' }}
+        DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+        DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      run: |
+        echo "Deploying to $SERVER_HOST..."
+        
+        # Create deployment script
+        cat << 'SCRIPT' > /tmp/deploy.sh
+        #!/bin/bash
+        set -e
+        
+        cd ${{ secrets.DEPLOY_PATH }}
+        
+        echo "Pulling latest changes..."
+        git fetch origin
+        git reset --hard origin/$(git rev-parse --abbrev-ref HEAD)
+        
+        echo "Updating environment variables..."
+        cat > .env << EOF
+        DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+        SECRET_KEY=${{ secrets.SECRET_KEY }}
+        EOF
+        
+        echo "Building and starting containers..."
+        docker-compose down
+        docker-compose pull
+        docker-compose up -d --build
+        
+        echo "Running migrations..."
+        sleep 10
+        docker-compose exec -T backend alembic upgrade head || true
+        
+        echo "Cleaning up old images..."
+        docker system prune -f
+        
+        echo "Deployment completed!"
+        SCRIPT
+        
+        # Copy and execute deployment script
+        scp -P $SSH_PORT /tmp/deploy.sh $SERVER_USER@$SERVER_HOST:/tmp/deploy.sh
+        ssh -p $SSH_PORT $SERVER_USER@$SERVER_HOST "chmod +x /tmp/deploy.sh && /tmp/deploy.sh"
+    
+    - name: Check deployment status
+      env:
+        SERVER_HOST: ${{ secrets.SERVER_HOST }}
+        SERVER_USER: ${{ secrets.SERVER_USER }}
+        SSH_PORT: ${{ secrets.SSH_PORT || '22' }}
+      run: |
+        echo "Checking deployment status..."
+        ssh -p $SSH_PORT $SERVER_USER@$SERVER_HOST "cd ${{ secrets.DEPLOY_PATH }} && docker-compose ps"

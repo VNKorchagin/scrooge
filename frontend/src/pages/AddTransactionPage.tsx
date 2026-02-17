@@ -1,0 +1,188 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { transactionsApi } from '@/api/client';
+import { CategoryAutocomplete } from '@/components/CategoryAutocomplete';
+import { TransactionType } from '@/types';
+import { format } from 'date-fns';
+
+export const AddTransactionPage = () => {
+  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const [type, setType] = useState<TransactionType>('expense');
+  const [amount, setAmount] = useState('');
+  const [categoryName, setCategoryName] = useState('');
+  const [transactionDate, setTransactionDate] = useState(
+    format(new Date(), "yyyy-MM-dd'T'HH:mm")
+  );
+  const [description, setDescription] = useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+
+    // Validation
+    if (!amount || parseFloat(amount) <= 0) {
+      setError('Please enter a valid amount');
+      return;
+    }
+    if (!categoryName.trim()) {
+      setError('Please enter a category');
+      return;
+    }
+    if (!transactionDate) {
+      setError('Please select a date');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await transactionsApi.create({
+        type,
+        amount: parseFloat(amount),
+        category_name: categoryName.trim(),
+        transaction_date: new Date(transactionDate).toISOString(),
+        description: description.trim() || undefined,
+      });
+      navigate('/dashboard');
+    } catch (err: any) {
+      setError(err.response?.data?.detail || 'Failed to create transaction');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="max-w-2xl mx-auto">
+      <h1 className="text-2xl font-bold text-gray-900 mb-6">Add Transaction</h1>
+
+      <div className="card">
+        {error && (
+          <div className="mb-4 rounded-lg bg-danger-50 p-4 text-sm text-danger-700">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Type Selection */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Transaction Type
+            </label>
+            <div className="flex gap-4">
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name="type"
+                  value="income"
+                  checked={type === 'income'}
+                  onChange={(e) => setType(e.target.value as TransactionType)}
+                  className="h-4 w-4 text-primary-600 focus:ring-primary-500"
+                />
+                <span className="ml-2 text-sm text-gray-700">Income</span>
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name="type"
+                  value="expense"
+                  checked={type === 'expense'}
+                  onChange={(e) => setType(e.target.value as TransactionType)}
+                  className="h-4 w-4 text-danger-600 focus:ring-danger-500"
+                />
+                <span className="ml-2 text-sm text-gray-700">Expense</span>
+              </label>
+            </div>
+          </div>
+
+          {/* Amount */}
+          <div>
+            <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-1">
+              Amount <span className="text-danger-500">*</span>
+            </label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+              <input
+                id="amount"
+                type="number"
+                step="0.01"
+                min="0.01"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                className="input pl-8"
+                placeholder="0.00"
+                required
+              />
+            </div>
+          </div>
+
+          {/* Category */}
+          <CategoryAutocomplete
+            value={categoryName}
+            onChange={setCategoryName}
+            required
+          />
+
+          {/* Date */}
+          <div>
+            <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-1">
+              Date & Time <span className="text-danger-500">*</span>
+            </label>
+            <input
+              id="date"
+              type="datetime-local"
+              value={transactionDate}
+              onChange={(e) => setTransactionDate(e.target.value)}
+              className="input"
+              required
+            />
+          </div>
+
+          {/* Description */}
+          <div>
+            <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+              Description
+            </label>
+            <textarea
+              id="description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="input"
+              rows={3}
+              placeholder="Optional description..."
+            />
+          </div>
+
+          {/* Actions */}
+          <div className="flex gap-4">
+            <button
+              type="button"
+              onClick={() => navigate('/dashboard')}
+              className="flex-1 btn-secondary"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="flex-1 btn-primary disabled:opacity-50"
+            >
+              {isLoading ? (
+                <span className="flex items-center justify-center">
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Saving...
+                </span>
+              ) : (
+                'Save Transaction'
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
