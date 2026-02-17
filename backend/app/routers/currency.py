@@ -67,8 +67,8 @@ async def convert_currency(
             detail=f"Could not get exchange rate for {current_currency} to {new_currency}"
         )
     
-    # Get user's transactions for preview
-    filters = TransactionFilter(limit=10000, offset=0)
+    # Get user's transactions for preview (max 100 for preview)
+    filters = TransactionFilter(limit=100, offset=0)
     transactions, total = await TransactionService.get_list(db, current_user_id, filters)
     
     # Calculate totals in current currency
