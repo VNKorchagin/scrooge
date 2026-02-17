@@ -4,7 +4,7 @@ from typing import Optional, List, Tuple
 from decimal import Decimal
 from datetime import datetime
 
-from app.models.transaction import Transaction, TransactionType
+from app.models.transaction import Transaction, TransactionType, TransactionSource
 from app.services.category_service import CategoryService
 from app.schemas.transaction import TransactionCreate, TransactionFilter
 
@@ -66,7 +66,7 @@ class TransactionService:
             category_name=category.name,
             description=transaction_data.description,
             transaction_date=transaction_data.transaction_date,
-            source=Transaction.Source.MANUAL
+            source=TransactionSource.MANUAL
         )
         
         db.add(transaction)
