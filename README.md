@@ -306,6 +306,56 @@ Configure GitHub Secrets:
 - `DB_PASSWORD`: Database password
 - `SECRET_KEY`: JWT secret key
 
+## Troubleshooting
+
+### Database Migration Issues
+
+**Problem:** `DuplicateTableError: relation "users" already exists`
+
+Solution: Mark migrations as applied without running them:
+```bash
+docker-compose exec backend alembic stamp head
+```
+
+**Problem:** `UndefinedColumnError: column users.language does not exist`
+
+Solution: Add missing columns manually:
+```bash
+docker-compose exec db psql -U scrooge -d scrooge_db -c "
+ALTER TABLE users ADD COLUMN IF NOT EXISTS language VARCHAR(10) DEFAULT 'en';
+ALTER TABLE users ADD COLUMN IF NOT EXISTS currency VARCHAR(10) DEFAULT 'USD';
+ALTER TABLE users ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT true;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT false;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP;
+"
+```
+
+### Container Conflicts
+
+**Problem:** `Cannot create container for service db: Conflict. The container name "/scrooge_db_1" is already in use`
+
+Solution: Remove old containers and rebuild:
+```bash
+docker-compose down
+docker container prune -f
+docker-compose up -d --build
+```
+
+### Alembic Configuration Not Found
+
+**Problem:** `No config file 'alembic.ini' found`
+
+Solution: Ensure Dockerfile copies alembic files:
+```dockerfile
+COPY alembic.ini .
+COPY alembic/ ./alembic/
+```
+
+Then rebuild:
+```bash
+docker-compose up -d --build
+```
+
 ## Future Features
 
 - [ ] Bank statement import (PDF/CSV)
