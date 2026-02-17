@@ -1,22 +1,26 @@
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { RecentTransaction } from '@/types';
 import { formatCurrency, formatDate } from '@/utils/format';
 
 interface RecentTransactionsProps {
   transactions: RecentTransaction[];
+  currency?: string;
 }
 
-export const RecentTransactions = ({ transactions }: RecentTransactionsProps) => {
+export const RecentTransactions = ({ transactions, currency }: RecentTransactionsProps) => {
+  const { t } = useTranslation();
+
   if (!transactions || transactions.length === 0) {
     return (
       <div className="card">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold text-gray-900">Recent Transactions</h3>
+          <h3 className="text-lg font-semibold text-gray-900">{t('dashboard.recentTransactions')}</h3>
           <Link to="/history" className="text-sm text-primary-600 hover:text-primary-700">
-            View All
+            {t('dashboard.viewAll')}
           </Link>
         </div>
-        <p className="text-gray-500 text-center py-8">No transactions yet</p>
+        <p className="text-gray-500 text-center py-8">{t('transaction.noTransactions')}</p>
       </div>
     );
   }
@@ -24,9 +28,9 @@ export const RecentTransactions = ({ transactions }: RecentTransactionsProps) =>
   return (
     <div className="card">
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-semibold text-gray-900">Recent Transactions</h3>
+        <h3 className="text-lg font-semibold text-gray-900">{t('dashboard.recentTransactions')}</h3>
         <Link to="/history" className="text-sm text-primary-600 hover:text-primary-700">
-          View All
+          {t('dashboard.viewAll')}
         </Link>
       </div>
       <div className="space-y-3">
@@ -56,7 +60,7 @@ export const RecentTransactions = ({ transactions }: RecentTransactionsProps) =>
               }`}
             >
               {transaction.type === 'income' ? '+' : '-'}
-              {formatCurrency(transaction.amount)}
+              {formatCurrency(transaction.amount, currency)}
             </span>
           </div>
         ))}

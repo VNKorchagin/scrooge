@@ -1,14 +1,18 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { StatsCard } from '@/components/StatsCard';
 import { CategoryPieChart } from '@/components/CategoryPieChart';
 import { RecentTransactions } from '@/components/RecentTransactions';
 import { statsApi } from '@/api/client';
+import { useAuthStore } from '@/stores/authStore';
 import { DashboardStats } from '@/types';
 
 type Period = 'month' | 'year' | 'all';
 
 export const DashboardPage = () => {
+  const { t } = useTranslation();
+  const { user } = useAuthStore();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [period, setPeriod] = useState<Period>('month');
@@ -30,9 +34,9 @@ export const DashboardPage = () => {
   };
 
   const periodLabels: Record<Period, string> = {
-    month: 'This Month',
-    year: 'This Year',
-    all: 'All Time',
+    month: t('dashboard.thisMonth'),
+    year: t('dashboard.thisYear'),
+    all: t('dashboard.allTime'),
   };
 
   if (isLoading) {
@@ -47,7 +51,7 @@ export const DashboardPage = () => {
     <div className="space-y-6">
       {/* Header with period selector */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{t('dashboard.title')}</h1>
         
         <div className="flex items-center gap-4">
           <select
@@ -55,13 +59,13 @@ export const DashboardPage = () => {
             onChange={(e) => setPeriod(e.target.value as Period)}
             className="input py-2 w-40"
           >
-            <option value="month">This Month</option>
-            <option value="year">This Year</option>
-            <option value="all">All Time</option>
+            <option value="month">{t('dashboard.thisMonth')}</option>
+            <option value="year">{t('dashboard.thisYear')}</option>
+            <option value="all">{t('dashboard.allTime')}</option>
           </select>
           
           <Link to="/add" className="btn-primary whitespace-nowrap">
-            + Add Transaction
+            + {t('dashboard.addTransaction')}
           </Link>
         </div>
       </div>
@@ -69,26 +73,32 @@ export const DashboardPage = () => {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         <StatsCard
-          title={`Income - ${periodLabels[period]}`}
+          title={`${t('dashboard.income')} - ${periodLabels[period]}`}
           amount={stats?.total_income || 0}
           type="income"
+          currency={user?.currency}
         />
         <StatsCard
-          title={`Expenses - ${periodLabels[period]}`}
+          title={`${t('dashboard.expense')} - ${periodLabels[period]}`}
           amount={stats?.total_expense || 0}
           type="expense"
+          currency={user?.currency}
         />
         <StatsCard
-          title={`Balance - ${periodLabels[period]}`}
+          title={`${t('dashboard.balance')} - ${periodLabels[period]}`}
           amount={stats?.balance || 0}
           type="balance"
+          currency={user?.currency}
         />
       </div>
 
       {/* Charts and Recent Transactions */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <CategoryPieChart data={stats?.by_category || []} />
-        <RecentTransactions transactions={stats?.recent_transactions || []} />
+        <RecentTransactions 
+          transactions={stats?.recent_transactions || []} 
+          currency={user?.currency}
+        />
       </div>
     </div>
   );
