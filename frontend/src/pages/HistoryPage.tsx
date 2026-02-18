@@ -84,9 +84,19 @@ export const HistoryPage = () => {
     return `${year}-${month}-${day}T${hours}:${minutes}`;
   };
 
-  // Format date for input (YYYY-MM-DD)
+  // Format date for input (YYYY-MM-DD) in local timezone
   const formatDateForInput = (date: Date): string => {
-    return date.toISOString().split('T')[0];
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  // Get start of day in UTC for API requests
+  const getStartOfDayUTC = (dateStr: string): string => {
+    // Create date at start of day (00:00:00) in local timezone, then convert to UTC ISO
+    const date = new Date(dateStr + 'T00:00:00');
+    return date.toISOString();
   };
 
   // Apply quick filter
@@ -139,8 +149,13 @@ export const HistoryPage = () => {
         offset,
       };
       if (filterType) params.type = filterType;
-      if (dateFrom) params.date_from = new Date(dateFrom).toISOString();
-      if (dateTo) params.date_to = new Date(dateTo + 'T23:59:59').toISOString();
+      // date_from: start of day (00:00:00) - inclusive
+      if (dateFrom) params.date_from = getStartOfDayUTC(dateFrom);
+      // date_to: end of day (23:59:59) - inclusive
+      if (dateTo) {
+        const endOfDay = new Date(dateTo + 'T23:59:59');
+        params.date_to = endOfDay.toISOString();
+      }
 
       const data = await transactionsApi.getAll(params);
       setTransactions(data.items);
@@ -194,8 +209,13 @@ export const HistoryPage = () => {
     try {
       const params: { type?: string; date_from?: string; date_to?: string } = {};
       if (filterType) params.type = filterType;
-      if (dateFrom) params.date_from = new Date(dateFrom).toISOString();
-      if (dateTo) params.date_to = new Date(dateTo + 'T23:59:59').toISOString();
+      // date_from: start of day (00:00:00) - inclusive
+      if (dateFrom) params.date_from = getStartOfDayUTC(dateFrom);
+      // date_to: end of day (23:59:59) - inclusive
+      if (dateTo) {
+        const endOfDay = new Date(dateTo + 'T23:59:59');
+        params.date_to = endOfDay.toISOString();
+      }
       
       await exportApi.exportCSV(params);
     } catch (error) {
