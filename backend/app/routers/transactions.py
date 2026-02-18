@@ -1,7 +1,7 @@
 from typing import List, Optional
 from fastapi import APIRouter, Depends, Query, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app.core.database import get_db
 from app.core.security import get_current_user_id
@@ -10,6 +10,16 @@ from app.models.transaction import TransactionType
 from app.services.transaction_service import TransactionService
 
 router = APIRouter()
+
+
+def normalize_datetime(dt: Optional[datetime]) -> Optional[datetime]:
+    """Convert offset-aware datetime to offset-naive (UTC) for DB compatibility."""
+    if dt is None:
+        return None
+    if dt.tzinfo is not None:
+        # Convert to UTC and remove timezone info
+        return dt.astimezone(timezone.utc).replace(tzinfo=None)
+    return dt
 
 
 class TransactionListResponse:
@@ -33,10 +43,11 @@ async def list_transactions(
     db: AsyncSession = Depends(get_db)
 ):
     """Get transactions with filters and pagination"""
+    # Normalize datetime filters to offset-naive UTC for DB compatibility
     filters = TransactionFilter(
         type=type,
-        date_from=date_from,
-        date_to=date_to,
+        date_from=normalize_datetime(date_from),
+        date_to=normalize_datetime(date_to),
         category_id=category_id,
         limit=limit,
         offset=offset
