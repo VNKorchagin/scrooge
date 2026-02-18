@@ -10,7 +10,7 @@ type QuickFilter = 'current_month' | '30_days' | 'quarter' | 'half_year' | 'year
 
 // Trash icon component
 const TrashIcon = () => (
-  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
   </svg>
 );
@@ -19,13 +19,6 @@ const TrashIcon = () => (
 const EditIcon = () => (
   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-  </svg>
-);
-
-// Info/Description icon component
-const InfoIcon = () => (
-  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
   </svg>
 );
 
@@ -227,11 +220,6 @@ export const HistoryPage = () => {
   const totalPages = Math.ceil(total / limit);
   const currentPage = Math.floor(offset / limit) + 1;
 
-  // Translate transaction type
-  const getTypeLabel = (type: TransactionType) => {
-    return type === 'income' ? t('transaction.income') : t('transaction.expense');
-  };
-
   // Quick filter buttons configuration
   const quickFilters: { key: QuickFilter; label: string }[] = [
     { key: 'current_month', label: t('history.currentMonth') },
@@ -321,113 +309,59 @@ export const HistoryPage = () => {
         </div>
       </div>
 
-      {/* Table */}
-      <div className="card overflow-x-auto">
+      {/* Transaction List - Cards */}
+      <div className="card p-0 overflow-hidden max-w-4xl mx-auto">
         {isLoading ? (
           <div className="flex items-center justify-center h-48">
             <div className="animate-spin h-8 w-8 border-4 border-primary-600 border-t-transparent rounded-full"></div>
           </div>
         ) : transactions.length === 0 ? (
-          <p className="text-gray-500 text-center py-8">{t('history.noTransactions')}</p>
+          <p className="text-gray-500 text-center py-8 px-4">{t('history.noTransactions')}</p>
         ) : (
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-gray-200">
-                <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">{t('transaction.type')}</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">{t('transaction.category')}</th>
-                <th className="text-right py-3 px-4 text-sm font-medium text-gray-500">{t('transaction.amount')}</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">{t('transaction.created')}</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">{t('transaction.date')}</th>
-                <th className="text-center py-3 px-4 text-sm font-medium text-gray-500 w-20"></th>
-              </tr>
-            </thead>
-            <tbody>
+          <>
+            {/* Mobile Cards */}
+            <div className="sm:hidden">
               {transactions.map((transaction) => (
-                <tr key={transaction.id} className="border-b border-gray-100 hover:bg-gray-50">
-                  {/* Type */}
-                  <td className="py-3 px-4">
-                    <span
-                      className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-                        transaction.type === 'income'
-                          ? 'bg-primary-100 text-primary-700'
-                          : 'bg-danger-100 text-danger-700'
-                      }`}
-                    >
-                      {getTypeLabel(transaction.type)}
-                    </span>
-                  </td>
-
-                  {/* Category with description preview */}
-                  <td className="py-3 px-4">
-                    <div className="flex items-center gap-2">
+                <div key={transaction.id} className="border-b border-gray-100 last:border-b-0 p-3 hover:bg-gray-50 transition-colors cursor-pointer">
+                  {/* Row 1: Category, Description, Amount and Delete */}
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
                       <span className="text-sm text-gray-900">{transaction.category_name}</span>
                       {transaction.description && (
-                        <div className="group relative">
-                          <button className="text-gray-400 hover:text-gray-600 transition-colors">
-                            <InfoIcon />
-                          </button>
-                          <div className="absolute left-0 bottom-full mb-2 w-64 p-3 bg-gray-800 text-white text-sm rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10 shadow-lg">
-                            <p className="font-medium mb-1">{t('transaction.description')}:</p>
-                            <p className="text-gray-300">{transaction.description}</p>
-                            <div className="absolute top-full left-4 w-2 h-2 bg-gray-800 rotate-45"></div>
-                          </div>
-                        </div>
+                        <p className="text-xs text-gray-500 mt-0.5 truncate">{transaction.description}</p>
                       )}
                     </div>
-                  </td>
-
-                  {/* Amount */}
-                  <td
-                    className={`py-3 px-4 text-sm font-medium text-right ${
-                      transaction.type === 'income'
-                        ? 'text-primary-600'
-                        : 'text-danger-600'
-                    }`}
-                  >
-                    {transaction.type === 'income' ? '+' : '-'}
-                    {formatCurrency(Number(transaction.amount), userCurrency)}
-                  </td>
-
-                  {/* Created At */}
-                  <td className="py-3 px-4 text-sm text-gray-500">
-                    {transaction.created_at 
-                      ? formatDateTime(transaction.created_at)
-                      : '-'}
-                  </td>
-
-                  {/* Transaction Date - Editable */}
-                  <td className="py-3 px-4">
+                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                      <span
+                        className={`text-sm font-medium whitespace-nowrap ${
+                          transaction.type === 'income' ? 'text-primary-600' : 'text-danger-600'
+                        }`}
+                      >
+                        {transaction.type === 'income' ? '+' : '-'}
+                        {formatCurrency(Number(transaction.amount), userCurrency)}
+                      </span>
+                      {editingId !== transaction.id && (
+                        <button
+                          onClick={() => handleDelete(transaction.id)}
+                          className="text-gray-400 hover:text-danger-600 transition-colors p-0.5"
+                          title={t('transaction.delete')}
+                        >
+                          <TrashIcon />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Row 2: Date and Edit */}
+                  <div className="flex items-center justify-between mt-2">
                     {editingId === transaction.id ? (
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1 flex-1">
                         <input
                           type="datetime-local"
                           value={editDate}
                           onChange={(e) => setEditDate(e.target.value)}
-                          className="input text-sm py-1"
+                          className="input text-xs py-1 px-1 flex-1"
                         />
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm text-gray-500">
-                          {transaction.transaction_date 
-                            ? formatDateTime(transaction.transaction_date)
-                            : '-'}
-                        </span>
-                        <button
-                          onClick={() => startEditing(transaction)}
-                          className="text-gray-400 hover:text-primary-600 transition-colors"
-                          title={t('transaction.edit')}
-                        >
-                          <EditIcon />
-                        </button>
-                      </div>
-                    )}
-                  </td>
-
-                  {/* Actions: Edit/Save and Delete */}
-                  <td className="py-3 px-4 text-center">
-                    {editingId === transaction.id ? (
-                      <div className="flex items-center justify-center gap-2">
                         <button
                           onClick={() => saveEdit(transaction.id)}
                           className="text-green-600 hover:text-green-700 transition-colors p-1"
@@ -444,39 +378,129 @@ export const HistoryPage = () => {
                         </button>
                       </div>
                     ) : (
-                      <button
-                        onClick={() => handleDelete(transaction.id)}
-                        className="text-gray-400 hover:text-danger-600 transition-colors p-1"
-                        title={t('transaction.delete')}
-                      >
-                        <TrashIcon />
-                      </button>
+                      <>
+                        <div className="text-xs text-gray-400">
+                          {transaction.transaction_date 
+                            ? formatDateTime(transaction.transaction_date)
+                            : '-'}
+                        </div>
+                        <button
+                          onClick={() => startEditing(transaction)}
+                          className="text-gray-400 hover:text-primary-600 transition-colors p-0.5"
+                          title={t('transaction.edit')}
+                        >
+                          <EditIcon />
+                        </button>
+                      </>
                     )}
-                  </td>
-                </tr>
+                  </div>
+                </div>
               ))}
-            </tbody>
-          </table>
+            </div>
+
+            {/* Desktop Cards */}
+            <div className="hidden sm:block">
+              {transactions.map((transaction) => (
+                <div key={transaction.id} className="border-b border-gray-100 last:border-b-0 px-4 py-2 hover:bg-gray-50 transition-colors cursor-pointer">
+                  {/* Row 1: Category, Amount and Delete */}
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <span className="text-sm text-gray-900">{transaction.category_name}</span>
+                      {transaction.description && (
+                        <p className="text-xs text-gray-500 mt-0.5">{transaction.description}</p>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <span
+                        className={`text-sm font-medium whitespace-nowrap ${
+                          transaction.type === 'income' ? 'text-primary-600' : 'text-danger-600'
+                        }`}
+                      >
+                        {transaction.type === 'income' ? '+' : '-'}
+                        {formatCurrency(Number(transaction.amount), userCurrency)}
+                      </span>
+                      {editingId !== transaction.id && (
+                        <button
+                          onClick={() => handleDelete(transaction.id)}
+                          className="text-gray-400 hover:text-danger-600 transition-colors p-0.5"
+                          title={t('transaction.delete')}
+                        >
+                          <TrashIcon />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Row 2: Dates and Edit */}
+                  <div className="flex items-center justify-between mt-2">
+                    {editingId === transaction.id ? (
+                      <div className="flex items-center gap-2 flex-1">
+                        <input
+                          type="datetime-local"
+                          value={editDate}
+                          onChange={(e) => setEditDate(e.target.value)}
+                          className="input text-sm py-1 px-2 flex-1 max-w-xs"
+                        />
+                        <button
+                          onClick={() => saveEdit(transaction.id)}
+                          className="text-green-600 hover:text-green-700 transition-colors p-1"
+                          title={t('transaction.save')}
+                        >
+                          <CheckIcon />
+                        </button>
+                        <button
+                          onClick={cancelEditing}
+                          className="text-gray-400 hover:text-gray-600 transition-colors p-1"
+                          title={t('transaction.cancel')}
+                        >
+                          <XIcon />
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="text-xs text-gray-400">
+                          <span>{t('transaction.created')}: {transaction.created_at 
+                            ? formatDateTime(transaction.created_at)
+                            : '-'}</span>
+                          <span className="mx-2">|</span>
+                          <span>{t('transaction.date')}: {transaction.transaction_date 
+                            ? formatDateTime(transaction.transaction_date)
+                            : '-'}</span>
+                        </div>
+                        <button
+                          onClick={() => startEditing(transaction)}
+                          className="text-gray-400 hover:text-primary-600 transition-colors p-0.5"
+                          title={t('transaction.edit')}
+                        >
+                          <EditIcon />
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         )}
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
-            <p className="text-sm text-gray-500">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4 pt-4 border-t border-gray-200 px-4 pb-4">
+            <p className="text-xs sm:text-sm text-gray-500 text-center sm:text-left">
               {t('history.showing', { start: offset + 1, end: Math.min(offset + limit, total), total })}
             </p>
             <div className="flex gap-2">
               <button
                 onClick={() => setOffset(Math.max(0, offset - limit))}
                 disabled={currentPage === 1}
-                className="btn-secondary text-sm disabled:opacity-50"
+                className="btn-secondary text-xs sm:text-sm py-1.5 sm:py-2 px-3 sm:px-4 disabled:opacity-50"
               >
                 {t('history.previous')}
               </button>
               <button
                 onClick={() => setOffset(offset + limit)}
                 disabled={currentPage >= totalPages}
-                className="btn-secondary text-sm disabled:opacity-50"
+                className="btn-secondary text-xs sm:text-sm py-1.5 sm:py-2 px-3 sm:px-4 disabled:opacity-50"
               >
                 {t('history.next')}
               </button>

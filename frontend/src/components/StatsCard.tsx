@@ -15,9 +15,9 @@ export const StatsCard = ({ title, amount, type, currency }: StatsCardProps) => 
   };
 
   return (
-    <div className="stat-card">
-      <span className="stat-label">{title}</span>
-      <span className={`stat-value ${colorClasses[type]}`}>
+    <div className="stat-card p-4 sm:p-6">
+      <span className="stat-label text-xs sm:text-sm">{title}</span>
+      <span className={`text-xl sm:text-2xl lg:text-3xl font-bold mt-1 sm:mt-2 ${colorClasses[type]}`}>
         {formatCurrency(amount, currency)}
       </span>
     </div>

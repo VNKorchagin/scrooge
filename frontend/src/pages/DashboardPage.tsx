@@ -96,8 +96,9 @@ export const DashboardPage = () => {
             )}
           </div>
           
-          <Link to="/add" className="btn-primary whitespace-nowrap">
-            + {t('dashboard.addTransaction')}
+          <Link to="/add" className="btn-primary whitespace-nowrap min-w-[44px] min-h-[44px] flex items-center justify-center ml-auto sm:ml-0">
+            <span className="sm:hidden text-xl font-bold">+</span>
+            <span className="hidden sm:inline">+ {t('dashboard.addTransaction')}</span>
           </Link>
         </div>
       </div>

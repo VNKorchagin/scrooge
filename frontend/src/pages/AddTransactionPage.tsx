@@ -75,9 +75,9 @@ export const AddTransactionPage = () => {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">{t('transaction.add')}</h1>
+      <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">{t('transaction.add')}</h1>
 
-      <div className="card">
+      <div className="card p-4 sm:p-6">
         {error && (
           <div className="mb-4 rounded-lg bg-danger-50 p-4 text-sm text-danger-700">
             {error}

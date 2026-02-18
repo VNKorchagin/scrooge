@@ -28,8 +28,8 @@ export const CategoryBarChart = ({ data, currency = 'USD' }: CategoryBarChartPro
 
   if (!data || data.length === 0) {
     return (
-      <div className="card h-80 flex items-center justify-center">
-        <p className="text-gray-500">{t('dashboard.noExpenseData')}</p>
+      <div className="card h-64 sm:h-80 flex items-center justify-center">
+        <p className="text-gray-500 text-center px-4">{t('dashboard.noExpenseData')}</p>
       </div>
     );
   }
@@ -41,26 +41,26 @@ export const CategoryBarChart = ({ data, currency = 'USD' }: CategoryBarChartPro
   const sortedData = [...data].sort((a, b) => Number(b.amount) - Number(a.amount));
 
   return (
-    <div className="card">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">
+    <div className="card p-4 sm:p-6">
+      <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">
         {t('dashboard.expensesByCategory')}
       </h3>
-      <div className="space-y-3">
+      <div className="space-y-2 sm:space-y-3">
         {sortedData.map((item, index) => {
           const percentage = total > 0 ? (Number(item.amount) / total) * 100 : 0;
           const color = CATEGORY_COLORS[index % CATEGORY_COLORS.length];
 
           return (
-            <div key={item.category} className="flex items-center gap-3">
+            <div key={item.category} className="flex items-center gap-2 sm:gap-3">
               {/* Category name */}
-              <div className="w-32 flex-shrink-0 text-sm text-gray-700 truncate" title={item.category}>
+              <div className="w-20 sm:w-32 flex-shrink-0 text-xs sm:text-sm text-gray-700 truncate" title={item.category}>
                 {item.category}
               </div>
 
               {/* Bar container */}
-              <div className="flex-1 flex items-center gap-3">
+              <div className="flex-1 flex items-center gap-2 sm:gap-3 min-w-0">
                 {/* Progress bar */}
-                <div className="flex-1 h-6 bg-gray-100 rounded-full overflow-hidden relative">
+                <div className="flex-1 h-4 sm:h-6 bg-gray-100 rounded-full overflow-hidden relative">
                   <div
                     className="h-full rounded-full transition-all duration-500 ease-out"
                     style={{
@@ -72,13 +72,13 @@ export const CategoryBarChart = ({ data, currency = 'USD' }: CategoryBarChartPro
                 </div>
 
                 {/* Percentage */}
-                <div className="w-12 text-right text-sm font-medium text-gray-600 flex-shrink-0">
+                <div className="w-8 sm:w-12 text-right text-xs sm:text-sm font-medium text-gray-600 flex-shrink-0">
                   {percentage.toFixed(0)}%
                 </div>
               </div>
 
               {/* Amount */}
-              <div className="w-24 text-right text-sm font-semibold text-gray-900 flex-shrink-0">
+              <div className="w-16 sm:w-24 text-right text-xs sm:text-sm font-semibold text-gray-900 flex-shrink-0">
                 {formatCurrency(Number(item.amount), currency)}
               </div>
             </div>
@@ -87,9 +87,9 @@ export const CategoryBarChart = ({ data, currency = 'USD' }: CategoryBarChartPro
       </div>
 
       {/* Total */}
-      <div className="mt-4 pt-3 border-t border-gray-200 flex justify-between items-center">
+      <div className="mt-3 sm:mt-4 pt-2 sm:pt-3 border-t border-gray-200 flex justify-between items-center">
         <span className="text-sm text-gray-600">{t('dashboard.total')}</span>
-        <span className="text-lg font-bold text-gray-900">
+        <span className="text-base sm:text-lg font-bold text-gray-900">
           {formatCurrency(total, currency)}
         </span>
       </div>
