@@ -144,10 +144,21 @@ DATABASE_URL=postgresql+asyncpg://scrooge:${DB_PASSWORD}@db/scrooge_db
 Available in backend container:
 ```bash
 python -m app.cli create-admin <user> <pass>
+python -m app.cli create-demo [username] [password]  # Creates demo user with sample data
 python -m app.cli list-users
 python -m app.cli delete-user <user> [--hard]
 python -m app.cli restore-user <user>
 ```
+
+### Demo User
+The `create-demo` command creates a test user pre-populated with realistic data:
+- **Default credentials**: `demo` / `demo123`
+- **Categories**: 5 income + 10 expense categories
+- **Transactions**: 
+  - 6+ months of monthly salary ($5000)
+  - Occasional freelance income
+  - ~80 expense transactions across all categories
+- **Use case**: Perfect for testing UI, charts, filters, and reports without manual data entry
 
 ## Common Issues
 

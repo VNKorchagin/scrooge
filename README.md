@@ -63,7 +63,14 @@ docker-compose exec backend alembic upgrade head
 docker-compose exec backend python -m app.cli create-admin admin your-password
 ```
 
-6. Access the application at `http://localhost`
+6. (Optional) Create demo user with sample data:
+```bash
+docker-compose exec backend python -m app.cli create-demo
+```
+
+This creates a demo user (`demo` / `demo123`) with pre-populated transactions for testing.
+
+7. Access the application at `http://localhost`
 
 ### HTTPS Setup (Production)
 
@@ -126,8 +133,20 @@ The backend includes CLI commands for administrative tasks:
 # Create admin user
 python -m app.cli create-admin <username> <password>
 
+# Create demo user with sample data (default: demo/demo123)
+python -m app.cli create-demo [username] [password]
+
 # List all users
 python -m app.cli list-users
+
+# Soft delete user
+python -m app.cli delete-user <username>
+
+# Hard delete user (permanent)
+python -m app.cli delete-user <username> --hard
+
+# Restore soft-deleted user
+python -m app.cli restore-user <username>
 ```
 
 ## API Documentation
