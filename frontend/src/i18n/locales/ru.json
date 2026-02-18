@@ -17,7 +17,9 @@
     "confirmPassword": "Подтвердите пароль",
     "createAccount": "Создать аккаунт",
     "loginFailed": "Ошибка входа",
-    "registrationFailed": "Ошибка регистрации"
+    "registrationFailed": "Ошибка регистрации",
+    "selectLanguage": "Язык",
+    "selectCurrency": "Валюта"
   },
   "dashboard": {
     "title": "Главная",

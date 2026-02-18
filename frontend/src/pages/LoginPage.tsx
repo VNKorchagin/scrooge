@@ -1,17 +1,20 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/stores/authStore';
 
 type Tab = 'login' | 'register';
 
 export const LoginPage = () => {
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
   const { login, register, isLoading, error, clearError } = useAuthStore();
   
   const [activeTab, setActiveTab] = useState<Tab>('login');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [currency, setCurrency] = useState<'USD' | 'RUB'>('USD');
   const [localError, setLocalError] = useState<string | null>(null);
 
   const handleTabChange = (tab: Tab) => {
@@ -20,13 +23,17 @@ export const LoginPage = () => {
     setLocalError(null);
   };
 
+  const handleLanguageChange = (lang: string) => {
+    i18n.changeLanguage(lang);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLocalError(null);
     clearError();
 
     if (!username.trim() || !password.trim()) {
-      setLocalError('Please fill in all fields');
+      setLocalError(t('errors.required'));
       return;
     }
 
@@ -45,7 +52,7 @@ export const LoginPage = () => {
       if (activeTab === 'login') {
         await login(username, password);
       } else {
-        await register(username, password);
+        await register(username, password, currency);
       }
       navigate('/dashboard');
     } catch (err: any) {
@@ -61,8 +68,34 @@ export const LoginPage = () => {
           <div className="mx-auto w-16 h-16 bg-primary-600 rounded-xl flex items-center justify-center mb-4">
             <span className="text-white font-bold text-3xl">S</span>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">Scrooge</h1>
-          <p className="mt-2 text-gray-600">Track your budget wisely</p>
+          <h1 className="text-3xl font-bold text-gray-900">{t('app.name')}</h1>
+          <p className="mt-2 text-gray-600">{t('app.tagline')}</p>
+        </div>
+
+        {/* Language Selector */}
+        <div className="flex justify-center">
+          <div className="inline-flex rounded-lg bg-gray-100 p-1">
+            <button
+              onClick={() => handleLanguageChange('en')}
+              className={`px-3 py-1 text-sm font-medium rounded-md transition-all ${
+                i18n.language === 'en'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              EN
+            </button>
+            <button
+              onClick={() => handleLanguageChange('ru')}
+              className={`px-3 py-1 text-sm font-medium rounded-md transition-all ${
+                i18n.language === 'ru'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              RU
+            </button>
+          </div>
         </div>
 
         {/* Tabs */}
@@ -75,7 +108,7 @@ export const LoginPage = () => {
                 : 'text-gray-500 hover:text-gray-700'
             }`}
           >
-            Sign In
+            {t('auth.signIn')}
           </button>
           <button
             onClick={() => handleTabChange('register')}
@@ -85,7 +118,7 @@ export const LoginPage = () => {
                 : 'text-gray-500 hover:text-gray-700'
             }`}
           >
-            Sign Up
+            {t('auth.signUp')}
           </button>
         </div>
 
@@ -100,7 +133,7 @@ export const LoginPage = () => {
           <div className="space-y-4">
             <div>
               <label htmlFor="username" className="block text-sm font-medium text-gray-700">
-                Username
+                {t('auth.username')}
               </label>
               <input
                 id="username"
@@ -108,14 +141,14 @@ export const LoginPage = () => {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 className="input mt-1"
-                placeholder="Enter your username"
+                placeholder={t('auth.username')}
                 required
               />
             </div>
 
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                Password
+                {t('auth.password')}
               </label>
               <input
                 id="password"
@@ -123,26 +156,43 @@ export const LoginPage = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="input mt-1"
-                placeholder="Enter your password"
+                placeholder={t('auth.password')}
                 required
               />
             </div>
 
             {activeTab === 'register' && (
-              <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
-                  Confirm Password
-                </label>
-                <input
-                  id="confirmPassword"
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="input mt-1"
-                  placeholder="Confirm your password"
-                  required
-                />
-              </div>
+              <>
+                <div>
+                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+                    {t('auth.confirmPassword')}
+                  </label>
+                  <input
+                    id="confirmPassword"
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="input mt-1"
+                    placeholder={t('auth.confirmPassword')}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="currency" className="block text-sm font-medium text-gray-700">
+                    {t('auth.selectCurrency')}
+                  </label>
+                  <select
+                    id="currency"
+                    value={currency}
+                    onChange={(e) => setCurrency(e.target.value as 'USD' | 'RUB')}
+                    className="input mt-1"
+                  >
+                    <option value="USD">{t('currency.USD')}</option>
+                    <option value="RUB">{t('currency.RUB')}</option>
+                  </select>
+                </div>
+              </>
             )}
           </div>
 
@@ -160,7 +210,7 @@ export const LoginPage = () => {
                 Processing...
               </span>
             ) : (
-              activeTab === 'login' ? 'Sign In' : 'Create Account'
+              activeTab === 'login' ? t('auth.signIn') : t('auth.createAccount')
             )}
           </button>
         </form>

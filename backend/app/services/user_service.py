@@ -38,7 +38,8 @@ class UserService:
         hashed_password = get_password_hash(user_data.password)
         db_user = User(
             username=user_data.username,
-            hashed_password=hashed_password
+            hashed_password=hashed_password,
+            currency=user_data.currency
         )
         db.add(db_user)
         await db.commit()

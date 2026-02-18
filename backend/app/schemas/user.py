@@ -13,6 +13,7 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     password: str = Field(..., min_length=4, max_length=71)
+    currency: Literal["USD", "RUB"] = "USD"
     
     @field_validator('password')
     @classmethod
