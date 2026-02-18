@@ -14,7 +14,6 @@ from app.main import app
 from app.services.transaction_service import TransactionService
 from app.models.transaction import Transaction, TransactionType, TransactionSource
 from app.models.user import User
-from app.schemas.transaction import TransactionCreate
 
 # Create test database engine
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
@@ -115,6 +114,44 @@ async def test_transactions(db_session: AsyncSession, test_user: User):
     
     await db_session.commit()
     return transactions
+
+
+class TestExportService:
+    """Test export service method."""
+    
+    @pytest.mark.asyncio
+    async def test_get_all_for_export(self, db_session: AsyncSession, test_user: User, test_transactions):
+        """Test get_all_for_export returns all transactions."""
+        result = await TransactionService.get_all_for_export(db_session, test_user.id)
+        
+        assert len(result) == 3
+        # Should be ordered by transaction_date desc
+        assert result[0].category_name == "Food"  # Feb 15
+        assert result[1].category_name == "Transport"  # None (comes after dates)
+        assert result[2].category_name == "Salary"  # Feb 1
+    
+    @pytest.mark.asyncio
+    async def test_get_all_for_export_with_type_filter(self, db_session: AsyncSession, test_user: User, test_transactions):
+        """Test get_all_for_export with type filter."""
+        result = await TransactionService.get_all_for_export(
+            db_session, test_user.id, type=TransactionType.income
+        )
+        
+        assert len(result) == 1
+        assert result[0].type == TransactionType.income
+        assert result[0].category_name == "Salary"
+    
+    @pytest.mark.asyncio
+    async def test_get_all_for_export_with_date_filter(self, db_session: AsyncSession, test_user: User, test_transactions):
+        """Test get_all_for_export with date filter."""
+        result = await TransactionService.get_all_for_export(
+            db_session, test_user.id,
+            date_from=datetime(2026, 2, 1, 0, 0, 0),
+            date_to=datetime(2026, 2, 5, 23, 59, 59)
+        )
+        
+        assert len(result) == 1
+        assert result[0].category_name == "Salary"
 
 
 class TestExportCSV:

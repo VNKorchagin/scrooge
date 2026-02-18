@@ -54,6 +54,32 @@ class TransactionService:
         return result.scalars().all(), count_result.scalar()
 
     @staticmethod
+    async def get_all_for_export(
+        db: AsyncSession,
+        user_id: int,
+        type: Optional[TransactionType] = None,
+        date_from: Optional[datetime] = None,
+        date_to: Optional[datetime] = None
+    ) -> List[Transaction]:
+        """Get all transactions for CSV export (no pagination limit)."""
+        query = select(Transaction).where(Transaction.user_id == user_id)
+        
+        if type:
+            query = query.where(Transaction.type == type)
+        
+        if date_from:
+            query = query.where(Transaction.transaction_date >= date_from)
+        
+        if date_to:
+            query = query.where(Transaction.transaction_date <= date_to)
+        
+        # Order by transaction_date desc
+        query = query.order_by(desc(Transaction.transaction_date))
+        
+        result = await db.execute(query)
+        return result.scalars().all()
+
+    @staticmethod
     async def create(db: AsyncSession, transaction_data: TransactionCreate, user_id: int) -> Transaction:
         # Get or create category
         category = await CategoryService.get_or_create(db, transaction_data.category_name, user_id)

@@ -9,7 +9,6 @@ from datetime import datetime
 from app.core.database import get_db
 from app.core.security import get_current_user_id
 from app.services.transaction_service import TransactionService
-from app.schemas.transaction import TransactionFilter
 from app.models.transaction import TransactionType
 
 router = APIRouter()
@@ -26,15 +25,9 @@ async def export_csv(
     """
     Export transactions to CSV format.
     """
-    filters = TransactionFilter(
-        type=type,
-        date_from=date_from,
-        date_to=date_to,
-        limit=10000,  # High limit for export
-        offset=0
+    transactions = await TransactionService.get_all_for_export(
+        db, current_user_id, type, date_from, date_to
     )
-    
-    transactions, _ = await TransactionService.get_list(db, current_user_id, filters)
     
     # Create CSV in memory
     output = io.StringIO()
