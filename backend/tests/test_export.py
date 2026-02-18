@@ -193,6 +193,48 @@ class TestExportService:
         
         # Test with None
         assert TransactionService._normalize_datetime(None) is None
+    
+    @pytest.mark.asyncio
+    async def test_get_grouped_for_export(self, db_session: AsyncSession, test_user: User, test_transactions):
+        """Test get_grouped_for_export groups transactions by category."""
+        result = await TransactionService.get_grouped_for_export(db_session, test_user.id)
+        
+        # Should have 3 categories: Food, Salary, Transport
+        assert len(result) == 3
+        
+        # Find Food category (expense)
+        food = next((r for r in result if r['category'] == 'Food'), None)
+        assert food is not None
+        assert food['income'] == 0.0
+        assert food['expense'] == -100.5
+        
+        # Find Salary category (income)
+        salary = next((r for r in result if r['category'] == 'Salary'), None)
+        assert salary is not None
+        assert salary['income'] == 5000.0
+        assert salary['expense'] == 0.0
+    
+    @pytest.mark.asyncio
+    async def test_get_grouped_for_export_with_multiple_same_category(self, db_session: AsyncSession, test_user: User):
+        """Test grouping sums multiple transactions in same category."""
+        # Add another Food expense
+        t = Transaction(
+            user_id=test_user.id,
+            type=TransactionType.EXPENSE,
+            amount=Decimal("50.00"),
+            category_name="Food",
+            description="Dinner",
+            transaction_date=datetime(2026, 2, 16, 12, 0, 0),
+            source=TransactionSource.manual,
+        )
+        db_session.add(t)
+        await db_session.commit()
+        
+        result = await TransactionService.get_grouped_for_export(db_session, test_user.id)
+        
+        food = next((r for r in result if r['category'] == 'Food'), None)
+        assert food is not None
+        assert food['expense'] == -150.5  # -100.5 + -50.0
 
 
 class TestExportCSV:
@@ -323,6 +365,41 @@ class TestExportCSV:
         response = client.get("/v1/export/csv")
         
         assert response.status_code == 401
+    
+    def test_export_grouped_csv(self, client, auth_headers, test_transactions):
+        """Test grouped CSV export."""
+        response = client.get("/v1/export/csv?grouped=true", headers=auth_headers)
+        
+        assert response.status_code == 200
+        assert response.headers["content-type"] == "text/csv; charset=utf-8"
+        assert "grouped" in response.headers["content-disposition"]
+        
+        content = response.content.decode('utf-8-sig')
+        csv_reader = csv.reader(io.StringIO(content))
+        rows = list(csv_reader)
+        
+        # Check header
+        assert rows[0] == ["Income", "Expense", "Category"]
+        
+        # Check data rows
+        assert len(rows) == 4  # header + 3 categories
+        
+        # Find Food row (expense)
+        food_row = next((r for r in rows if r[2] == "Food"), None)
+        assert food_row is not None
+        assert food_row[0] == ""  # No income
+        assert food_row[1] == "-100.5"  # Expense
+    
+    def test_export_grouped_xlsx(self, client, auth_headers, test_transactions):
+        """Test grouped XLSX export."""
+        response = client.get("/v1/export/csv?format=xlsx&grouped=true", headers=auth_headers)
+        
+        assert response.status_code == 200
+        assert response.headers["content-type"] == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        
+        # Check content is valid XLSX
+        content = response.content
+        assert content[:4] == b'PK\x03\x04'  # ZIP file signature
 
 
 # Fixtures for API tests
