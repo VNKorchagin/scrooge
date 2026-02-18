@@ -29,6 +29,24 @@ class TransactionCreate(TransactionBase):
     pass
 
 
+class TransactionUpdate(BaseModel):
+    """Schema for updating a transaction. All fields are optional."""
+    transaction_date: Optional[datetime] = None
+    description: Optional[str] = None
+    amount: Optional[Decimal] = Field(None, max_digits=12, decimal_places=2)
+    category_name: Optional[str] = None
+    
+    @field_validator('transaction_date')
+    @classmethod
+    def normalize_datetime(cls, v: Optional[datetime]) -> Optional[datetime]:
+        """Convert offset-aware datetime to offset-naive (UTC)."""
+        if v is None:
+            return v
+        if v.tzinfo is not None:
+            return v.astimezone(timezone.utc).replace(tzinfo=None)
+        return v
+
+
 class Transaction(TransactionBase):
     model_config = ConfigDict(from_attributes=True)
     

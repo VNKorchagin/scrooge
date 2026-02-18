@@ -96,6 +96,16 @@ export const transactionsApi = {
     return response.data;
   },
   
+  update: async (id: number, data: {
+    transaction_date?: string;
+    description?: string;
+    amount?: number;
+    category_name?: string;
+  }) => {
+    const response = await apiClient.patch(`/transactions/${id}`, data);
+    return response.data;
+  },
+
   delete: async (id: number) => {
     const response = await apiClient.delete(`/transactions/${id}`);
     return response.data;

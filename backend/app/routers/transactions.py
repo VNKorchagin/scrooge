@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 
 from app.core.database import get_db
 from app.core.security import get_current_user_id
-from app.schemas.transaction import Transaction, TransactionCreate, TransactionFilter
+from app.schemas.transaction import Transaction, TransactionCreate, TransactionFilter, TransactionUpdate
 from app.models.transaction import TransactionType
 from app.services.transaction_service import TransactionService
 
@@ -77,6 +77,28 @@ async def create_transaction(
     If category doesn't exist, it will be created automatically.
     """
     return await TransactionService.create(db, transaction_data, current_user_id)
+
+
+@router.patch("/{transaction_id}", response_model=Transaction)
+async def update_transaction(
+    transaction_id: int,
+    updates: TransactionUpdate,
+    current_user_id: int = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db)
+):
+    """Update a transaction (only if owned by current user)."""
+    transaction = await TransactionService.get_by_id(db, transaction_id, current_user_id)
+    if not transaction:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Transaction not found"
+        )
+    
+    # Convert to dict, excluding None values
+    update_data = updates.model_dump(exclude_unset=True, exclude_none=True)
+    
+    updated_transaction = await TransactionService.update(db, transaction, update_data)
+    return Transaction.model_validate(updated_transaction)
 
 
 @router.delete("/{transaction_id}")

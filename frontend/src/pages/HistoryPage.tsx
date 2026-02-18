@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { transactionsApi, exportApi } from '@/api/client';
 import { useAuthStore } from '@/stores/authStore';
 import { Transaction, TransactionType } from '@/types';
-import { formatCurrency, formatDateTime, formatDate } from '@/utils/format';
+import { formatCurrency, formatDateTime } from '@/utils/format';
 
 // Quick filter period types
 type QuickFilter = 'current_month' | '30_days' | 'quarter' | 'half_year' | 'year' | 'custom';
@@ -15,10 +15,31 @@ const TrashIcon = () => (
   </svg>
 );
 
+// Edit icon component
+const EditIcon = () => (
+  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+  </svg>
+);
+
 // Info/Description icon component
 const InfoIcon = () => (
   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+  </svg>
+);
+
+// Check icon component
+const CheckIcon = () => (
+  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+  </svg>
+);
+
+// X icon component
+const XIcon = () => (
+  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
   </svg>
 );
 
@@ -37,6 +58,10 @@ export const HistoryPage = () => {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
 
+  // Edit state
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editDate, setEditDate] = useState('');
+
   // Get user's currency
   const userCurrency = user?.currency || 'USD';
 
@@ -48,6 +73,16 @@ export const HistoryPage = () => {
   useEffect(() => {
     fetchTransactions();
   }, [offset, filterType, dateFrom, dateTo]);
+
+  // Format date for input (YYYY-MM-DDTHH:mm)
+  const formatDateTimeForInput = (date: Date): string => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  };
 
   // Format date for input (YYYY-MM-DD)
   const formatDateForInput = (date: Date): string => {
@@ -125,6 +160,32 @@ export const HistoryPage = () => {
       fetchTransactions();
     } catch (error) {
       console.error('Failed to delete transaction:', error);
+      alert(t('errors.serverError'));
+    }
+  };
+
+  const startEditing = (transaction: Transaction) => {
+    setEditingId(transaction.id);
+    const date = transaction.transaction_date 
+      ? new Date(transaction.transaction_date)
+      : new Date();
+    setEditDate(formatDateTimeForInput(date));
+  };
+
+  const cancelEditing = () => {
+    setEditingId(null);
+    setEditDate('');
+  };
+
+  const saveEdit = async (id: number) => {
+    try {
+      await transactionsApi.update(id, {
+        transaction_date: new Date(editDate).toISOString(),
+      });
+      setEditingId(null);
+      fetchTransactions();
+    } catch (error) {
+      console.error('Failed to update transaction:', error);
       alert(t('errors.serverError'));
     }
   };
@@ -257,7 +318,7 @@ export const HistoryPage = () => {
                 <th className="text-right py-3 px-4 text-sm font-medium text-gray-500">{t('transaction.amount')}</th>
                 <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">{t('transaction.created')}</th>
                 <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">{t('transaction.date')}</th>
-                <th className="text-center py-3 px-4 text-sm font-medium text-gray-500 w-16"></th>
+                <th className="text-center py-3 px-4 text-sm font-medium text-gray-500 w-20"></th>
               </tr>
             </thead>
             <tbody>
@@ -310,26 +371,67 @@ export const HistoryPage = () => {
                   {/* Created At */}
                   <td className="py-3 px-4 text-sm text-gray-500">
                     {transaction.created_at 
-                      ? formatDate(transaction.created_at)
+                      ? formatDateTime(transaction.created_at)
                       : '-'}
                   </td>
 
-                  {/* Transaction Date */}
-                  <td className="py-3 px-4 text-sm text-gray-500">
-                    {transaction.transaction_date 
-                      ? formatDateTime(transaction.transaction_date)
-                      : '-'}
+                  {/* Transaction Date - Editable */}
+                  <td className="py-3 px-4">
+                    {editingId === transaction.id ? (
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="datetime-local"
+                          value={editDate}
+                          onChange={(e) => setEditDate(e.target.value)}
+                          className="input text-sm py-1"
+                        />
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-gray-500">
+                          {transaction.transaction_date 
+                            ? formatDateTime(transaction.transaction_date)
+                            : '-'}
+                        </span>
+                        <button
+                          onClick={() => startEditing(transaction)}
+                          className="text-gray-400 hover:text-primary-600 transition-colors"
+                          title={t('transaction.edit')}
+                        >
+                          <EditIcon />
+                        </button>
+                      </div>
+                    )}
                   </td>
 
-                  {/* Delete Button */}
+                  {/* Actions: Edit/Save and Delete */}
                   <td className="py-3 px-4 text-center">
-                    <button
-                      onClick={() => handleDelete(transaction.id)}
-                      className="text-gray-400 hover:text-danger-600 transition-colors p-1"
-                      title={t('transaction.delete')}
-                    >
-                      <TrashIcon />
-                    </button>
+                    {editingId === transaction.id ? (
+                      <div className="flex items-center justify-center gap-2">
+                        <button
+                          onClick={() => saveEdit(transaction.id)}
+                          className="text-green-600 hover:text-green-700 transition-colors p-1"
+                          title={t('transaction.save')}
+                        >
+                          <CheckIcon />
+                        </button>
+                        <button
+                          onClick={cancelEditing}
+                          className="text-gray-400 hover:text-gray-600 transition-colors p-1"
+                          title={t('transaction.cancel')}
+                        >
+                          <XIcon />
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => handleDelete(transaction.id)}
+                        className="text-gray-400 hover:text-danger-600 transition-colors p-1"
+                        title={t('transaction.delete')}
+                      >
+                        <TrashIcon />
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}

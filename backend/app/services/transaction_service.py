@@ -85,6 +85,19 @@ class TransactionService:
         return transaction
 
     @staticmethod
+    async def update(db: AsyncSession, transaction: Transaction, updates: dict) -> Transaction:
+        """Update transaction fields."""
+        allowed_fields = ['transaction_date', 'description', 'amount', 'category_name']
+        
+        for field, value in updates.items():
+            if field in allowed_fields and value is not None:
+                setattr(transaction, field, value)
+        
+        await db.commit()
+        await db.refresh(transaction)
+        return transaction
+
+    @staticmethod
     async def delete(db: AsyncSession, transaction_id: int, user_id: int) -> bool:
         transaction = await TransactionService.get_by_id(db, transaction_id, user_id)
         if not transaction:
