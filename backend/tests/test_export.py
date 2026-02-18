@@ -152,6 +152,47 @@ class TestExportService:
         
         assert len(result) == 1
         assert result[0].category_name == "Salary"
+    
+    @pytest.mark.asyncio
+    async def test_get_all_for_export_with_timezone_aware_dates(self, db_session: AsyncSession, test_user: User, test_transactions):
+        """Test get_all_for_export handles timezone-aware dates correctly."""
+        from datetime import timezone, timedelta
+        
+        # Use timezone-aware dates (as they come from frontend)
+        tz = timezone(timedelta(hours=0))  # UTC
+        result = await TransactionService.get_all_for_export(
+            db_session, test_user.id,
+            date_from=datetime(2026, 1, 31, 21, 0, 0, tzinfo=tz),  # 2026-01-31T21:00:00Z
+            date_to=datetime(2026, 2, 18, 20, 59, 59, tzinfo=tz)   # 2026-02-18T20:59:59Z
+        )
+        
+        # Should include Salary (Feb 1) and Food (Feb 15)
+        assert len(result) == 2
+        assert result[0].category_name == "Food"  # Feb 15
+        assert result[1].category_name == "Salary"  # Feb 1
+    
+    def test_normalize_datetime(self):
+        """Test _normalize_datetime helper method."""
+        from datetime import timezone, timedelta
+        
+        # Test with timezone-aware datetime
+        tz = timezone(timedelta(hours=3))  # UTC+3
+        aware_dt = datetime(2026, 2, 15, 15, 30, 0, tzinfo=tz)
+        normalized = TransactionService._normalize_datetime(aware_dt)
+        
+        assert normalized.tzinfo is None  # Should be offset-naive
+        # 15:30 in UTC+3 = 12:30 UTC
+        assert normalized.hour == 12
+        assert normalized.minute == 30
+        
+        # Test with offset-naive datetime
+        naive_dt = datetime(2026, 2, 15, 12, 0, 0)
+        normalized = TransactionService._normalize_datetime(naive_dt)
+        
+        assert normalized == naive_dt  # Should remain unchanged
+        
+        # Test with None
+        assert TransactionService._normalize_datetime(None) is None
 
 
 class TestExportCSV:

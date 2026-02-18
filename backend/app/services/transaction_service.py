@@ -54,6 +54,15 @@ class TransactionService:
         return result.scalars().all(), count_result.scalar()
 
     @staticmethod
+    def _normalize_datetime(dt: Optional[datetime]) -> Optional[datetime]:
+        """Convert offset-aware datetime to offset-naive (UTC)."""
+        if dt is None:
+            return None
+        if dt.tzinfo is not None:
+            return dt.astimezone(timezone.utc).replace(tzinfo=None)
+        return dt
+
+    @staticmethod
     async def get_all_for_export(
         db: AsyncSession,
         user_id: int,
@@ -67,10 +76,13 @@ class TransactionService:
         if type:
             query = query.where(Transaction.type == type)
         
+        # Normalize dates to offset-naive UTC
         if date_from:
+            date_from = TransactionService._normalize_datetime(date_from)
             query = query.where(Transaction.transaction_date >= date_from)
         
         if date_to:
+            date_to = TransactionService._normalize_datetime(date_to)
             query = query.where(Transaction.transaction_date <= date_to)
         
         # Order by transaction_date desc
