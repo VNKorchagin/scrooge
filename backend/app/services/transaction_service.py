@@ -2,7 +2,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, desc
 from typing import Optional, List, Tuple
 from decimal import Decimal
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app.models.transaction import Transaction, TransactionType, TransactionSource
 from app.services.category_service import CategoryService
@@ -63,6 +63,11 @@ class TransactionService:
         if isinstance(transaction_type, str):
             transaction_type = TransactionType(transaction_type)
         
+        # Use current datetime if transaction_date not provided
+        transaction_date = transaction_data.transaction_date
+        if transaction_date is None:
+            transaction_date = datetime.now(timezone.utc).replace(tzinfo=None)
+        
         transaction = Transaction(
             user_id=user_id,
             type=transaction_type,
@@ -70,7 +75,7 @@ class TransactionService:
             category_id=category.id,
             category_name=category.name,
             description=transaction_data.description,
-            transaction_date=transaction_data.transaction_date,
+            transaction_date=transaction_date,
             source=TransactionSource.MANUAL
         )
         

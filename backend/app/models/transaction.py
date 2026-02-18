@@ -29,7 +29,7 @@ class Transaction(Base):
     category_name = Column(String, nullable=False)
     description = Column(Text, nullable=True)
     raw_description = Column(Text, nullable=True)
-    transaction_date = Column(DateTime, nullable=False, index=True)
+    transaction_date = Column(DateTime, nullable=True, index=True)
     source = Column(Enum(TransactionSource), default=TransactionSource.MANUAL, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 

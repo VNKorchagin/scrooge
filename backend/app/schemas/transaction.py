@@ -10,13 +10,15 @@ class TransactionBase(BaseModel):
     type: TransactionType
     amount: Decimal = Field(..., max_digits=12, decimal_places=2)
     category_name: str
-    transaction_date: datetime
+    transaction_date: Optional[datetime] = None
     description: Optional[str] = None
     
     @field_validator('transaction_date')
     @classmethod
-    def normalize_datetime(cls, v: datetime) -> datetime:
+    def normalize_datetime(cls, v: Optional[datetime]) -> Optional[datetime]:
         """Convert offset-aware datetime to offset-naive (UTC)."""
+        if v is None:
+            return v
         if v.tzinfo is not None:
             # Convert to UTC and remove timezone info
             return v.astimezone(timezone.utc).replace(tzinfo=None)

@@ -43,6 +43,7 @@
     "amount": "Amount",
     "category": "Category",
     "date": "Date & Time",
+    "dateOptional": "Optional - current time will be used if not specified",
     "description": "Description",
     "save": "Save Transaction",
     "cancel": "Cancel",

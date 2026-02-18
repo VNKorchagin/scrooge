@@ -5,7 +5,6 @@ import { transactionsApi } from '@/api/client';
 import { CategoryAutocomplete } from '@/components/CategoryAutocomplete';
 import { useAuthStore } from '@/stores/authStore';
 import { TransactionType } from '@/types';
-import { format } from 'date-fns';
 
 // Currency symbols mapping
 const currencySymbols: Record<string, string> = {
@@ -23,9 +22,8 @@ export const AddTransactionPage = () => {
   const [type, setType] = useState<TransactionType>('expense');
   const [amount, setAmount] = useState('');
   const [categoryName, setCategoryName] = useState('');
-  const [transactionDate, setTransactionDate] = useState(
-    format(new Date(), "yyyy-MM-dd'T'HH:mm")
-  );
+  // Empty by default - user can fill if needed
+  const [transactionDate, setTransactionDate] = useState('');
   const [description, setDescription] = useState('');
 
   // Get currency symbol from user settings
@@ -44,20 +42,29 @@ export const AddTransactionPage = () => {
       setError(t('errors.required'));
       return;
     }
-    if (!transactionDate) {
-      setError(t('errors.required'));
-      return;
-    }
+    // Note: transaction_date is optional - if not provided, backend uses current datetime
 
     setIsLoading(true);
     try {
-      await transactionsApi.create({
+      const data: {
+        type: TransactionType;
+        amount: number;
+        category_name: string;
+        description?: string;
+        transaction_date?: string;
+      } = {
         type,
         amount: parseFloat(amount),
         category_name: categoryName.trim(),
-        transaction_date: new Date(transactionDate).toISOString(),
         description: description.trim() || undefined,
-      });
+      };
+
+      // Only include transaction_date if user provided it
+      if (transactionDate) {
+        data.transaction_date = new Date(transactionDate).toISOString();
+      }
+
+      await transactionsApi.create(data);
       navigate('/dashboard');
     } catch (err: any) {
       setError(err.response?.data?.detail || t('errors.serverError'));
@@ -137,10 +144,10 @@ export const AddTransactionPage = () => {
             required
           />
 
-          {/* Date */}
+          {/* Date - Optional */}
           <div>
             <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-1">
-              {t('transaction.date')} <span className="text-danger-500">*</span>
+              {t('transaction.date')}
             </label>
             <input
               id="date"
@@ -148,8 +155,10 @@ export const AddTransactionPage = () => {
               value={transactionDate}
               onChange={(e) => setTransactionDate(e.target.value)}
               className="input"
-              required
             />
+            <p className="text-xs text-gray-500 mt-1">
+              {t('transaction.dateOptional') || 'Optional - current time will be used if not specified'}
+            </p>
           </div>
 
           {/* Description */}

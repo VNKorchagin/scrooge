@@ -89,7 +89,7 @@ export const transactionsApi = {
     type: 'income' | 'expense';
     amount: number;
     category_name: string;
-    transaction_date: string;
+    transaction_date?: string;
     description?: string;
   }) => {
     const response = await apiClient.post('/transactions', data);
