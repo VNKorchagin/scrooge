@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { transactionsApi, exportApi } from '@/api/client';
+import { transactionsApi, exportApi, ExportFormat } from '@/api/client';
 import { useAuthStore } from '@/stores/authStore';
 import { Transaction, TransactionType } from '@/types';
 import { formatCurrency, formatDateTime } from '@/utils/format';
@@ -205,6 +205,8 @@ export const HistoryPage = () => {
     }
   };
 
+  const [exportFormat, setExportFormat] = useState<ExportFormat>('csv');
+
   const handleExport = async () => {
     try {
       const params: { type?: string; date_from?: string; date_to?: string } = {};
@@ -217,7 +219,7 @@ export const HistoryPage = () => {
         params.date_to = endOfDay.toISOString();
       }
       
-      await exportApi.exportCSV(params);
+      await exportApi.exportData(exportFormat, params);
     } catch (error) {
       console.error('Failed to export:', error);
       alert(t('errors.serverError'));
@@ -240,12 +242,24 @@ export const HistoryPage = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 className="text-2xl font-bold text-gray-900">{t('history.title')}</h1>
-        <button
-          onClick={handleExport}
-          className="btn-secondary text-sm"
-        >
-          {t('history.exportCSV')}
-        </button>
+        <div className="flex items-center gap-2">
+          <select
+            value={exportFormat}
+            onChange={(e) => setExportFormat(e.target.value as ExportFormat)}
+            className="input py-1.5 text-sm"
+            title={t('history.exportFormat')}
+          >
+            <option value="csv">CSV</option>
+            <option value="tsv">TSV (Google Sheets)</option>
+            <option value="xlsx">Excel (.xlsx)</option>
+          </select>
+          <button
+            onClick={handleExport}
+            className="btn-secondary text-sm"
+          >
+            {t('history.export')}
+          </button>
+        </div>
       </div>
 
       {/* Filters */}

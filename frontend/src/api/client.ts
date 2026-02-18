@@ -151,10 +151,13 @@ export const userApi = {
   },
 };
 
+export type ExportFormat = 'csv' | 'tsv' | 'xlsx';
+
 // Export API
 export const exportApi = {
-  exportCSV: async (params?: { type?: string; date_from?: string; date_to?: string }) => {
+  exportData: async (format: ExportFormat = 'csv', params?: { type?: string; date_from?: string; date_to?: string }) => {
     const queryParams = new URLSearchParams();
+    queryParams.append('format', format);
     if (params?.type) queryParams.append('type', params.type);
     if (params?.date_from) queryParams.append('date_from', params.date_from);
     if (params?.date_to) queryParams.append('date_to', params.date_to);
@@ -163,12 +166,24 @@ export const exportApi = {
       responseType: 'blob',
     });
     
+    // Determine MIME type and extension
+    const mimeTypes: Record<ExportFormat, string> = {
+      csv: 'text/csv',
+      tsv: 'text/tab-separated-values',
+      xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    };
+    const extensions: Record<ExportFormat, string> = {
+      csv: 'csv',
+      tsv: 'tsv',
+      xlsx: 'xlsx',
+    };
+    
     // Create download link
-    const blob = new Blob([response.data], { type: 'text/csv' });
+    const blob = new Blob([response.data], { type: mimeTypes[format] });
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', `transactions_${new Date().toISOString().slice(0, 10)}.csv`);
+    link.setAttribute('download', `transactions_${new Date().toISOString().slice(0, 10)}.${extensions[format]}`);
     document.body.appendChild(link);
     link.click();
     link.remove();

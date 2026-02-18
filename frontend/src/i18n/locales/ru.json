@@ -71,6 +71,8 @@
     "to": "По",
     "all": "Все",
     "exportCSV": "Экспорт CSV",
+    "export": "Экспорт",
+    "exportFormat": "Формат экспорта",
     "noTransactions": "Операции не найдены",
     "showing": "Показано {{start}}-{{end}} из {{total}}",
     "previous": "Назад",

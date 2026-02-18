@@ -71,6 +71,8 @@
     "to": "To",
     "all": "All",
     "exportCSV": "Export CSV",
+    "export": "Export",
+    "exportFormat": "Export format",
     "noTransactions": "No transactions found",
     "showing": "Showing {{start}}-{{end}} of {{total}}",
     "previous": "Previous",
