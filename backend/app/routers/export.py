@@ -9,7 +9,7 @@ from datetime import datetime
 from app.core.database import get_db
 from app.core.security import get_current_user_id
 from app.services.transaction_service import TransactionService
-from app.models.transaction import TransactionType
+from app.models.transaction import TransactionType, TransactionSource
 
 router = APIRouter()
 
@@ -33,22 +33,24 @@ async def export_csv(
     output = io.StringIO()
     writer = csv.writer(output)
     
-    # Write header
+    # Write header (ID, Type, Source removed; Amount includes sign)
     writer.writerow([
-        "ID", "Type", "Amount", "Category", "Description", 
-        "Transaction Date", "Source", "Created At"
+        "Amount", "Category", "Description", 
+        "Transaction Date", "Created At"
     ])
     
     # Write data
     for t in transactions:
+        # Amount: positive for income, negative for expense
+        amount = float(t.amount) if t.amount else 0
+        if t.type == TransactionType.expense:
+            amount = -amount
+        
         writer.writerow([
-            t.id,
-            t.type.value if t.type else "",
-            float(t.amount) if t.amount else 0,
+            amount,
             t.category_name or "",
             t.description or "",
             t.transaction_date.isoformat() if t.transaction_date else "",
-            t.source.value if t.source else "manual",
             t.created_at.isoformat() if t.created_at else ""
         ])
     

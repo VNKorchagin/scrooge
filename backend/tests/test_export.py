@@ -211,28 +211,29 @@ class TestExportCSV:
         csv_reader = csv.reader(io.StringIO(content))
         rows = list(csv_reader)
         
-        # Check header
+        # Check header (Amount, Category, Description, Transaction Date, Created At)
         assert rows[0] == [
-            "ID", "Type", "Amount", "Category", "Description",
-            "Transaction Date", "Source", "Created At"
+            "Amount", "Category", "Description",
+            "Transaction Date", "Created At"
         ]
         
         # Check data rows (should have 3 transactions)
         assert len(rows) == 4  # header + 3 transactions
         
-        # Check first transaction (with all fields)
-        assert rows[1][1] == "expense"
-        assert rows[1][2] == "100.5"
-        assert rows[1][3] == "Food"
-        assert rows[1][4] == "Lunch"
-        assert "2026-02-15" in rows[1][5]  # Transaction Date
-        assert rows[1][6] == "manual"
+        # Check first transaction (expense should be negative)
+        assert rows[1][0] == "-100.5"  # Amount negative for expense
+        assert rows[1][1] == "Food"
+        assert rows[1][2] == "Lunch"
+        assert "2026-02-15" in rows[1][3]  # Transaction Date
         
-        # Check second transaction (without description)
-        assert rows[2][4] == ""  # Description should be empty string
+        # Check second transaction (income should be positive)
+        assert rows[2][0] == "5000.0"  # Amount positive for income
+        assert rows[2][1] == "Salary"
+        assert rows[2][2] == ""  # Description should be empty string
         
-        # Check third transaction (without transaction_date)
-        assert rows[3][5] == ""  # Transaction Date should be empty string
+        # Check third transaction
+        assert rows[3][0] == "-50.0"  # Amount negative for expense
+        assert rows[3][3] == ""  # Transaction Date should be empty string
     
     def test_export_csv_with_date_filter(self, client, auth_headers, test_transactions):
         """Test CSV export with date range filter."""
@@ -249,7 +250,7 @@ class TestExportCSV:
         
         # Should only include Salary transaction (Feb 1)
         assert len(rows) == 2  # header + 1 transaction
-        assert rows[1][3] == "Salary"
+        assert rows[1][1] == "Salary"
     
     def test_export_csv_with_type_filter(self, client, auth_headers, test_transactions):
         """Test CSV export with type filter."""
@@ -264,10 +265,10 @@ class TestExportCSV:
         csv_reader = csv.reader(io.StringIO(content))
         rows = list(csv_reader)
         
-        # Should only include income transaction
+        # Should only include income transaction (positive amount)
         assert len(rows) == 2  # header + 1 income
-        assert rows[1][1] == "income"
-        assert rows[1][3] == "Salary"
+        assert rows[1][0] == "5000.0"  # Positive amount
+        assert rows[1][1] == "Salary"
     
     def test_export_csv_empty(self, client, auth_headers):
         """Test CSV export when no transactions exist."""
