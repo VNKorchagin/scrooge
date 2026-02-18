@@ -9,6 +9,7 @@ A personal budget tracking application with FastAPI backend and React TypeScript
 - 📊 Dashboard with statistics and charts
 - 📈 Transaction history with filters
 - 🏛️ **The Vault** - Financial portfolio tracking (assets, liabilities, deposits, loans)
+- 📥 **Bank Statement Import** - Import CSV/PDF from Tinkoff, Sber, Alfa with auto-categorization
 - 📤 CSV/Excel/TSV export
 - 🔐 JWT authentication
 - 🌍 Multi-language support (English/Russian)
@@ -197,6 +198,20 @@ When running locally, API docs are available at:
 |----------|--------|-------------|
 | `/v1/export/csv` | GET | Export transactions to CSV/TSV/XLSX |
 
+#### Import
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/v1/import/preview` | POST | Upload and preview CSV/PDF statement |
+| `/v1/import/confirm` | POST | Confirm and save imported transactions |
+| `/v1/import/suggest-category` | POST | Get category suggestion for description |
+
+**Supported Banks:** Tinkoff, SberBank, Alfa-Bank (auto-detection)
+
+**Features:**
+- Automatic categorization based on MCC codes, regex patterns, and user history
+- Duplicate detection (checks existing transactions)
+- Batch category editing for identical descriptions
+
 #### The Vault (Financial Portfolio)
 | Endpoint | Method | Description |
 |----------|--------|-------------|
@@ -218,6 +233,31 @@ When running locally, API docs are available at:
 | `/v1/users/admin/users/{id}` | DELETE | Delete user (soft/hard) |
 | `/v1/users/admin/users/{id}/make-admin` | POST | Grant admin privileges |
 | `/v1/users/admin/users/{id}/revoke-admin` | POST | Revoke admin privileges |
+
+## Testing
+
+Run the test suite:
+
+```bash
+cd backend
+source venv/bin/activate
+
+# Run all tests
+pytest
+
+# Run with coverage
+pytest --cov=app --cov-report=term-missing
+
+# Run specific test file
+pytest tests/test_import.py -v
+```
+
+The project includes tests for:
+- Import functionality (CSV/PDF parsing, categorization, duplicate detection)
+- Transaction operations
+- Currency conversion
+- API endpoints
+- Security (authentication/authorization)
 
 ## Database Schema
 

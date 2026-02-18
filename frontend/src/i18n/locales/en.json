@@ -1,6 +1,7 @@
 {
   "common": {
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "actions": "Actions"
   },
   "export": {
     "title": "Export Settings",
@@ -20,6 +21,8 @@
     "dashboard": "Dashboard",
     "addTransaction": "Add Transaction",
     "history": "History",
+    "vault": "The Vault",
+    "import": "Import",
     "logout": "Logout"
   },
   "auth": {
@@ -116,6 +119,49 @@
     "apply": "Apply Conversion",
     "conversionNote": "All future transactions will use the new currency"
   },
+  "import": {
+    "title": "Import Bank Statement",
+    "fileLabel": "Bank Statement File",
+    "dropzone": "Click or drag CSV/PDF file here",
+    "dropHere": "Drop file here",
+    "invalidFileType": "Only CSV and PDF files are supported",
+    "bankType": "Bank (optional)",
+    "autoDetect": "Auto-detect",
+    "preview": "Preview",
+    "parsing": "Parsing...",
+    "previewResults": "Preview Results",
+    "totalTransactions": "Total",
+    "highConfidence": "High Confidence",
+    "mediumConfidence": "Medium Confidence",
+    "lowConfidence": "Needs Review",
+    "detectedBank": "Detected bank",
+    "reviewTransactions": "Review Transactions",
+    "reviewHint": "Green = auto-categorized, Yellow = suggested, Red = needs manual selection",
+    "date": "Date",
+    "description": "Description",
+    "amount": "Amount",
+    "confidence": "Confidence",
+    "category": "Category",
+    "noFile": "Please select a file",
+    "previewError": "Failed to parse file. Please check format.",
+    "confirmImport": "Import {{count}} Transactions",
+    "importing": "Importing...",
+    "importError": "Failed to import transactions",
+    "success": "Successfully imported {{count}} transactions",
+    "completed": "Import Completed",
+    "resultMessage": "Imported {{imported}} transactions, learned {{patterns}} patterns for future categorization",
+    "importAnother": "Import Another File",
+    "confidenceColumn": "Confidence",
+    "deleteRow": "Delete",
+    "duplicates": "Duplicates",
+    "duplicate": "Duplicate",
+    "duplicateTooltip": "This transaction may already exist in your database",
+    "confidence": {
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low"
+    }
+  },
   "vault": {
     "title": "The Vault",
     "subtitle": "Financial portfolio and projections",
@@ -172,13 +218,6 @@
     "paidOff": "Paid off",
     "projectionEnd": "At the end of period",
     "scrollToSee": "Scroll to see more"
-  },
-  "nav": {
-    "dashboard": "Dashboard",
-    "addTransaction": "Add Transaction",
-    "history": "History",
-    "vault": "The Vault",
-    "logout": "Logout"
   },
   "errors": {
     "required": "This field is required",

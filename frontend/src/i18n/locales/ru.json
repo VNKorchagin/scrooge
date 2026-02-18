@@ -1,6 +1,7 @@
 {
   "common": {
-    "cancel": "Отмена"
+    "cancel": "Отмена",
+    "actions": "Действия"
   },
   "export": {
     "title": "Настройки экспорта",
@@ -20,6 +21,8 @@
     "dashboard": "Главная",
     "addTransaction": "Добавить",
     "history": "История",
+    "vault": "Хранилище",
+    "import": "Импорт",
     "logout": "Выйти"
   },
   "auth": {
@@ -118,6 +121,49 @@
     "apply": "Применить",
     "conversionNote": "Все будущие операции будут в новой валюте"
   },
+  "import": {
+    "title": "Импорт выписки",
+    "fileLabel": "Файл выписки",
+    "dropzone": "Нажмите или перетащите CSV/PDF файл",
+    "dropHere": "Отпустите файл здесь",
+    "invalidFileType": "Поддерживаются только CSV и PDF файлы",
+    "bankType": "Банк (опционально)",
+    "autoDetect": "Определить автоматически",
+    "preview": "Предпросмотр",
+    "parsing": "Обработка...",
+    "previewResults": "Результаты анализа",
+    "totalTransactions": "Всего",
+    "highConfidence": "Высокая уверенность",
+    "mediumConfidence": "Средняя уверенность",
+    "lowConfidence": "Требует проверки",
+    "detectedBank": "Определен банк",
+    "reviewTransactions": "Проверьте операции",
+    "reviewHint": "Зеленый = автокатегория, Желтый = предложена, Красный = выберите вручную",
+    "date": "Дата",
+    "description": "Описание",
+    "amount": "Сумма",
+    "confidence": "Уверенность",
+    "category": "Категория",
+    "noFile": "Выберите файл",
+    "previewError": "Ошибка чтения файла. Проверьте формат.",
+    "confirmImport": "Импортировать {{count}} операций",
+    "importing": "Импорт...",
+    "importError": "Ошибка импорта",
+    "success": "Успешно импортировано {{count}} операций",
+    "completed": "Импорт завершен",
+    "resultMessage": "Импортировано {{imported}} операций, сохранено {{patterns}} шаблонов для будущей категоризации",
+    "importAnother": "Импортировать еще",
+    "confidenceColumn": "Уверенность",
+    "deleteRow": "Удалить",
+    "duplicates": "Дубликаты",
+    "duplicate": "Дубликат",
+    "duplicateTooltip": "Эта операция уже есть в вашей базе данных",
+    "confidence": {
+      "high": "Высокая",
+      "medium": "Средняя",
+      "low": "Низкая"
+    }
+  },
   "vault": {
     "title": "Хранилище",
     "subtitle": "Финансовый портфель и прогнозы",
@@ -174,13 +220,6 @@
     "paidOff": "Будет погашен",
     "projectionEnd": "На конец периода",
     "scrollToSee": "Прокрутите для просмотра"
-  },
-  "nav": {
-    "dashboard": "Главная",
-    "addTransaction": "Добавить",
-    "history": "История",
-    "vault": "Хранилище",
-    "logout": "Выйти"
   },
   "errors": {
     "required": "Обязательное поле",

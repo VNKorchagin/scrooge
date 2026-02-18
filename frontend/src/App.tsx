@@ -6,6 +6,7 @@ import { DashboardPage } from '@/pages/DashboardPage';
 import { AddTransactionPage } from '@/pages/AddTransactionPage';
 import { HistoryPage } from '@/pages/HistoryPage';
 import { VaultPage } from '@/pages/VaultPage';
+import { ImportPage } from '@/pages/ImportPage';
 
 function App() {
   return (
@@ -42,6 +43,14 @@ function App() {
           element={
             <ProtectedRoute>
               <VaultPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/import"
+          element={
+            <ProtectedRoute>
+              <ImportPage />
             </ProtectedRoute>
           }
         />

@@ -12,6 +12,17 @@ openpyxl==3.1.5
 python-dateutil==2.9.0
 httpx==0.27.2
 
+# PDF parsing
+pdfplumber==0.11.4
+pymupdf==1.25.1
+
+# Fuzzy string matching for categorization
+thefuzz==0.22.1
+python-levenshtein==0.26.1
+
+# ML for categorization
+scikit-learn==1.6.0
+
 # Testing
 pytest==8.3.3
 pytest-asyncio==0.24.0

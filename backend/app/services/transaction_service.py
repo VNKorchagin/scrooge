@@ -1,8 +1,8 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, desc
+from sqlalchemy import select, func, desc, and_, or_
 from typing import Optional, List, Tuple
 from decimal import Decimal
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 from app.models.transaction import Transaction, TransactionType, TransactionSource
 from app.services.category_service import CategoryService
@@ -319,3 +319,46 @@ class TransactionService:
         
         result = await db.execute(query)
         return [{"category": row[0], "amount": row[1]} for row in result.all()]
+
+    @staticmethod
+    async def find_duplicates(
+        db: AsyncSession,
+        user_id: int,
+        description: str,
+        amount: Decimal,
+        transaction_date: Optional[datetime],
+        days_tolerance: int = 1
+    ) -> List[Transaction]:
+        """Find potential duplicate transactions.
+        
+        Checks for transactions with:
+        - Same or similar description
+        - Same amount (absolute value)
+        - Transaction date within ±days_tolerance days
+        """
+        query = select(Transaction).where(
+            Transaction.user_id == user_id,
+            Transaction.amount == abs(amount)
+        )
+        
+        # Check date range if provided
+        if transaction_date:
+            date_from = transaction_date - timedelta(days=days_tolerance)
+            date_to = transaction_date + timedelta(days=days_tolerance)
+            query = query.where(
+                Transaction.transaction_date >= date_from,
+                Transaction.transaction_date <= date_to
+            )
+        
+        # Check for similar description
+        query = query.where(
+            or_(
+                Transaction.raw_description == description,
+                Transaction.description == description,
+                Transaction.raw_description.ilike(f"%{description}%"),
+                Transaction.description.ilike(f"%{description}%")
+            )
+        )
+        
+        result = await db.execute(query)
+        return result.scalars().all()

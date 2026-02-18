@@ -7,6 +7,7 @@ interface CategoryAutocompleteProps {
   value: string;
   onChange: (value: string) => void;
   label?: string;
+  placeholder?: string;
   required?: boolean;
 }
 
@@ -14,6 +15,7 @@ export const CategoryAutocomplete = ({
   value,
   onChange,
   label,
+  placeholder,
   required = false,
 }: CategoryAutocompleteProps) => {
   const { t } = useTranslation();
@@ -73,7 +75,7 @@ export const CategoryAutocomplete = ({
           setTimeout(() => setShowSuggestions(false), 200);
         }}
         className="input"
-        placeholder={t('transaction.searchCategory')}
+        placeholder={placeholder || t('transaction.searchCategory')}
         required={required}
         autoComplete="off"
       />

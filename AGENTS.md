@@ -59,6 +59,7 @@ scrooge/
 - Multi-language (EN/RU)
 - Multi-currency (USD/RUB) with CBR rates
 - **The Vault** - Financial portfolio management (assets, liabilities, deposits, loans)
+- **Bank Statement Import** - CSV/PDF import with auto-categorization
 - Soft delete for users
 - Admin panel
 - CSV/TSV/XLSX export
@@ -74,6 +75,7 @@ All endpoints prefixed with `/v1/`:
 - `/stats/*` - Statistics
 - `/currency/*` - Currency conversion
 - `/export/*` - Data export (CSV/TSV/XLSX)
+- `/import/*` - Bank statement import (CSV/PDF)
 - `/vault/*` - Financial portfolio (The Vault)
 - `/users/admin/*` - Admin operations
 
@@ -87,6 +89,8 @@ Hard delete removes data permanently.
 - `users` - User accounts with settings
 - `categories` - User-defined categories
 - `transactions` - Income/expense records
+- `transaction_patterns` - User's learned categorization patterns
+- `mcc_codes` - Merchant Category Codes reference
 - `vault_accounts` - Financial accounts (checking, savings, deposits, loans, brokerage)
 - `vault_snapshots` - Historical portfolio snapshots
 - `vault_projection_settings` - User settings for vault projections
@@ -209,6 +213,71 @@ The `create-demo` command creates a test user pre-populated with realistic data:
   - Occasional freelance income
   - ~80 expense transactions across all categories
 - **Use case**: Perfect for testing UI, charts, filters, and reports without manual data entry
+
+## Bank Statement Import Feature
+
+### Overview
+Users can import bank statements from CSV or PDF files. The system automatically categorizes transactions using a hybrid approach.
+
+### Supported Formats
+- **CSV**: Tinkoff Bank, SberBank, Alfa-Bank, and generic CSV
+- **PDF**: Text-based PDF statements from major Russian banks
+
+### Categorization Algorithm
+The system uses a 4-tier hybrid approach:
+
+1. **User Patterns (Highest Priority)**
+   - Stores user's previous categorization decisions in `transaction_patterns` table
+   - Exact match: 99% confidence
+   - Fuzzy match (80%+ similarity): variable confidence
+
+2. **MCC Code Lookup**
+   - Merchant Category Codes from `mcc_codes` table
+   - 85% confidence for known MCCs
+   - Pre-loaded with 40+ common MCC codes
+
+3. **Regex Pattern Matching**
+   - Predefined patterns for popular merchants (Pyatyorochka, Gazpromneft, Yandex, etc.)
+   - 85% confidence
+   - Patterns stored in `CategorizationService.MERCHANT_PATTERNS`
+
+4. **Transaction History Fuzzy Match**
+   - Matches against user's previous transactions
+   - 80%+ similarity threshold
+   - Variable confidence based on match quality
+
+### Confidence Levels
+- **High (Green)**: User pattern or MCC match - auto-accepted
+- **Medium (Yellow)**: Regex or history match - suggested
+- **Low (Red)**: Unknown - requires manual category selection
+
+### API Endpoints
+- `POST /v1/import/preview` - Upload and preview transactions
+- `POST /v1/import/confirm` - Confirm and save transactions
+- `POST /v1/import/suggest-category` - Get category suggestion
+- `POST /v1/import/learn-pattern` - Teach system a new pattern
+
+### Dependencies
+```
+# Backend
+pdfplumber==0.11.4      # PDF parsing
+pymupdf==1.25.1         # PDF fallback
+thefuzz==0.22.1         # Fuzzy string matching
+python-levenshtein==0.26.1  # Speed up fuzzy matching
+scikit-learn==1.6.0     # Future ML categorization
+```
+
+### Adding New Bank Support
+1. Create new adapter in `app/services/import_service.py`
+2. Inherit from `BaseBankAdapter`
+3. Implement `detect()` and `parse()` methods
+4. Add to `ADAPTERS` registry
+
+### Adding New Merchant Patterns
+Edit `CategorizationService.MERCHANT_PATTERNS` in `app/services/categorization_service.py`:
+```python
+r"pattern|alias|synonym": ("EnglishCategory", "RussianCategory"),
+```
 
 ## Common Issues
 

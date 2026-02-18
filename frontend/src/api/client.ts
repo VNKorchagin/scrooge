@@ -192,6 +192,69 @@ export const exportApi = {
   },
 };
 
+// Types for Import
+export interface ImportTransaction {
+  raw_description: string;
+  amount: number;
+  transaction_date: string | null;
+  mcc_code: string | null;
+  type: 'income' | 'expense';
+  suggested_category: string | null;
+  confidence: 'high' | 'medium' | 'low';
+  confidence_score: number;
+  is_duplicate: boolean;
+  duplicate_count: number;
+}
+
+export interface ImportPreviewResponse {
+  transactions: ImportTransaction[];
+  total_count: number;
+  high_confidence_count: number;
+  medium_confidence_count: number;
+  low_confidence_count: number;
+  duplicate_count: number;
+  detected_bank: string | null;
+}
+
+export interface ImportConfirmResponse {
+  imported_count: number;
+  saved_patterns: number;
+}
+
+// Import API
+export const importApi = {
+  preview: async (file: File, bankType?: string): Promise<ImportPreviewResponse> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    if (bankType) {
+      formData.append('bank_type', bankType);
+    }
+    
+    const response = await apiClient.post('/import/preview', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+  
+  confirm: async (transactions: ImportTransaction[], savePatterns: boolean = true): Promise<ImportConfirmResponse> => {
+    const response = await apiClient.post('/import/confirm', {
+      transactions,
+      save_patterns: savePatterns,
+    });
+    return response.data;
+  },
+  
+  suggestCategory: async (rawDescription: string, mccCode?: string | null): Promise<{category: string; confidence: string; score: number}> => {
+    const response = await apiClient.post('/import/suggest-category', {
+      raw_description: rawDescription,
+      mcc_code: mccCode,
+    });
+    return response.data;
+  },
+};
+
 // Types for Vault
 export interface VaultAccount {
   id: number;

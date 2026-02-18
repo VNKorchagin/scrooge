@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.routers import auth, categories, transactions, stats, export, currency, users, vault
+from app.routers import auth, categories, transactions, stats, export, currency, users, vault, import_statements
 
 api_router = APIRouter(prefix="/v1")
 
@@ -12,3 +12,4 @@ api_router.include_router(export.router, prefix="/export", tags=["export"])
 api_router.include_router(currency.router, prefix="/currency", tags=["currency"])
 api_router.include_router(users.router, prefix="/users", tags=["users"])
 api_router.include_router(vault.router, tags=["vault"])
+api_router.include_router(import_statements.router, prefix="/import", tags=["import"])
