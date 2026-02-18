@@ -155,12 +155,13 @@ export type ExportFormat = 'csv' | 'tsv' | 'xlsx';
 
 // Export API
 export const exportApi = {
-  exportData: async (format: ExportFormat = 'csv', params?: { type?: string; date_from?: string; date_to?: string }) => {
+  exportData: async (format: ExportFormat = 'csv', params?: { type?: string; date_from?: string; date_to?: string; grouped?: string }) => {
     const queryParams = new URLSearchParams();
     queryParams.append('format', format);
     if (params?.type) queryParams.append('type', params.type);
     if (params?.date_from) queryParams.append('date_from', params.date_from);
     if (params?.date_to) queryParams.append('date_to', params.date_to);
+    if (params?.grouped) queryParams.append('grouped', params.grouped);
     
     const response = await apiClient.get(`/export/csv?${queryParams.toString()}`, {
       responseType: 'blob',

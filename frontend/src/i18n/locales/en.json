@@ -1,4 +1,17 @@
 {
+  "common": {
+    "cancel": "Cancel"
+  },
+  "export": {
+    "title": "Export Settings",
+    "button": "Export",
+    "format": "Format",
+    "type": "Export Type",
+    "typeAll": "All Transactions",
+    "typeAllDesc": "Export each transaction as a separate row",
+    "typeGrouped": "Group by Category",
+    "typeGroupedDesc": "Sum transactions by category (Income and Expense in separate columns)"
+  },
   "app": {
     "name": "Scrooge",
     "tagline": "Track your budget wisely"
@@ -70,9 +83,7 @@
     "from": "From",
     "to": "To",
     "all": "All",
-    "exportCSV": "Export CSV",
     "export": "Export",
-    "exportFormat": "Export format",
     "noTransactions": "No transactions found",
     "showing": "Showing {{start}}-{{end}} of {{total}}",
     "previous": "Previous",

@@ -92,6 +92,66 @@ class TransactionService:
         return result.scalars().all()
 
     @staticmethod
+    async def get_grouped_for_export(
+        db: AsyncSession,
+        user_id: int,
+        type: Optional[TransactionType] = None,
+        date_from: Optional[datetime] = None,
+        date_to: Optional[datetime] = None
+    ) -> List[dict]:
+        """Get transactions grouped by category for export. Returns list of dicts with category, income, expense."""
+        from sqlalchemy import func
+        
+        query = select(
+            Transaction.category_name,
+            Transaction.type,
+            func.sum(Transaction.amount).label('total_amount')
+        ).where(Transaction.user_id == user_id)
+        
+        if type:
+            query = query.where(Transaction.type == type)
+        
+        # Normalize dates to offset-naive UTC
+        if date_from:
+            date_from = TransactionService._normalize_datetime(date_from)
+            query = query.where(Transaction.transaction_date >= date_from)
+        
+        if date_to:
+            date_to = TransactionService._normalize_datetime(date_to)
+            query = query.where(Transaction.transaction_date <= date_to)
+        
+        # Group by category and type
+        query = query.group_by(Transaction.category_name, Transaction.type)
+        query = query.order_by(Transaction.category_name)
+        
+        result = await db.execute(query)
+        rows = result.all()
+        
+        # Transform into grouped format: {category: {income: x, expense: y}}
+        grouped = {}
+        for row in rows:
+            category = row.category_name or "Uncategorized"
+            if category not in grouped:
+                grouped[category] = {'income': 0.0, 'expense': 0.0}
+            
+            amount = float(row.total_amount) if row.total_amount else 0.0
+            if row.type == TransactionType.INCOME:
+                grouped[category]['income'] = amount
+            else:
+                grouped[category]['expense'] = -amount  # Negative for expense
+        
+        # Convert to list of dicts
+        result_list = []
+        for category, amounts in sorted(grouped.items()):
+            result_list.append({
+                'category': category,
+                'income': amounts['income'],
+                'expense': amounts['expense']
+            })
+        
+        return result_list
+
+    @staticmethod
     async def create(db: AsyncSession, transaction_data: TransactionCreate, user_id: int) -> Transaction:
         # Get or create category
         category = await CategoryService.get_or_create(db, transaction_data.category_name, user_id)

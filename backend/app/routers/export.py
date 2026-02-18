@@ -17,41 +17,101 @@ router = APIRouter()
 def _write_csv_data(writer, transactions):
     """Write transaction data to CSV/TSV writer."""
     for t in transactions:
-        # Amount: positive for income, negative for expense
         amount = float(t.amount) if t.amount else 0
         if t.type == TransactionType.EXPENSE:
             amount = -amount
-        
         writer.writerow([
-            amount,
-            t.category_name or "",
-            t.description or "",
+            amount, t.category_name or "", t.description or "",
             t.transaction_date.isoformat() if t.transaction_date else "",
             t.created_at.isoformat() if t.created_at else ""
         ])
 
 
+def _write_grouped_data(writer, grouped_data):
+    """Write grouped data to CSV/TSV writer."""
+    for item in grouped_data:
+        writer.writerow([
+            item['income'] if item['income'] != 0 else "",
+            item['expense'] if item['expense'] != 0 else "",
+            item['category']
+        ])
+
+
 @router.get("/csv")
 async def export_csv(
-    format: Literal["csv", "tsv", "xlsx"] = Query("csv", description="Export format: csv, tsv, or xlsx"),
+    format: Literal["csv", "tsv", "xlsx"] = Query("csv"),
     type: Optional[TransactionType] = Query(None),
     date_from: Optional[datetime] = Query(None),
     date_to: Optional[datetime] = Query(None),
+    grouped: Optional[str] = Query(None),
     current_user_id: int = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db)
 ):
-    """
-    Export transactions to CSV, TSV, or XLSX format.
+    """Export transactions to CSV, TSV, or XLSX format."""
+    is_grouped = grouped == 'true'
     
-    - **csv**: Comma-separated values (default)
-    - **tsv**: Tab-separated values (best for Google Sheets copy-paste)
-    - **xlsx**: Excel format for direct import
-    """
-    transactions = await TransactionService.get_all_for_export(
-        db, current_user_id, type, date_from, date_to
-    )
+    if is_grouped:
+        grouped_data = await TransactionService.get_grouped_for_export(
+            db, current_user_id, type, date_from, date_to
+        )
+        
+        if format == "tsv":
+            output = io.StringIO()
+            writer = csv.writer(output, delimiter='\t', lineterminator='\n')
+            writer.writerow(["Income", "Expense", "Category"])
+            _write_grouped_data(writer, grouped_data)
+            output.seek(0)
+            filename = f"transactions_grouped_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.tsv"
+            return StreamingResponse(
+                io.BytesIO(output.getvalue().encode('utf-8')),
+                media_type="text/tab-separated-values",
+                headers={"Content-Disposition": f"attachment; filename={filename}"}
+            )
+        
+        if format == "xlsx":
+            from openpyxl import Workbook
+            from openpyxl.styles import Font, PatternFill, Border, Side
+            wb = Workbook()
+            ws = wb.active
+            ws.title = "Grouped"
+            header_font = Font(bold=True, color="FFFFFF")
+            header_fill = PatternFill(start_color="4472C4", end_color="4472C4", fill_type="solid")
+            thin_border = Border(left=Side(style='thin'), right=Side(style='thin'), top=Side(style='thin'), bottom=Side(style='thin'))
+            for col, header in enumerate(["Income", "Expense", "Category"], 1):
+                cell = ws.cell(row=1, column=col, value=header)
+                cell.font = header_font
+                cell.fill = header_fill
+                cell.border = thin_border
+            for row_idx, item in enumerate(grouped_data, 2):
+                income_val = item['income'] if item['income'] != 0 else None
+                cell = ws.cell(row=row_idx, column=1, value=income_val)
+                cell.border = thin_border
+                if income_val:
+                    cell.font = Font(color="008000")
+                expense_val = item['expense'] if item['expense'] != 0 else None
+                cell = ws.cell(row=row_idx, column=2, value=expense_val)
+                cell.border = thin_border
+                if expense_val:
+                    cell.font = Font(color="C00000")
+                ws.cell(row=row_idx, column=3, value=item['category']).border = thin_border
+            ws.freeze_panes = "A2"
+            output = io.BytesIO()
+            wb.save(output)
+            output.seek(0)
+            filename = f"transactions_grouped_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.xlsx"
+            return StreamingResponse(output, media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", headers={"Content-Disposition": f"attachment; filename={filename}"})
+        
+        # CSV grouped
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow(["Income", "Expense", "Category"])
+        _write_grouped_data(writer, grouped_data)
+        output.seek(0)
+        filename = f"transactions_grouped_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.csv"
+        return StreamingResponse(io.BytesIO(output.getvalue().encode('utf-8-sig')), media_type="text/csv", headers={"Content-Disposition": f"attachment; filename={filename}"})
     
-    # Common headers
+    # Regular export
+    transactions = await TransactionService.get_all_for_export(db, current_user_id, type, date_from, date_to)
     headers = ["Amount", "Category", "Description", "Transaction Date", "Created At"]
     
     if format == "tsv":

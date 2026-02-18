@@ -7,6 +7,7 @@ import { formatCurrency, formatDateTime } from '@/utils/format';
 
 // Quick filter period types
 type QuickFilter = 'current_month' | '30_days' | 'quarter' | 'half_year' | 'year' | 'custom';
+type ExportType = 'all' | 'grouped';
 
 // Trash icon component
 const TrashIcon = () => (
@@ -36,6 +37,113 @@ const XIcon = () => (
   </svg>
 );
 
+// Export Modal Component
+interface ExportModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onExport: (format: ExportFormat, type: ExportType) => void;
+}
+
+const ExportModal = ({ isOpen, onClose, onExport }: ExportModalProps) => {
+  const { t } = useTranslation();
+  const [format, setFormat] = useState<ExportFormat>('csv');
+  const [exportType, setExportType] = useState<ExportType>('all');
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+      <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-gray-900">{t('export.title')}</h3>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            <XIcon />
+          </button>
+        </div>
+
+        <div className="space-y-4">
+          {/* Format selection */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {t('export.format')}
+            </label>
+            <div className="grid grid-cols-3 gap-2">
+              {(['csv', 'tsv', 'xlsx'] as ExportFormat[]).map((f) => (
+                <button
+                  key={f}
+                  onClick={() => setFormat(f)}
+                  className={`py-2 px-3 text-sm font-medium rounded-lg transition-all ${
+                    format === f
+                      ? 'bg-primary-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {f.toUpperCase()}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Export type selection */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {t('export.type')}
+            </label>
+            <div className="space-y-2">
+              <label className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors">
+                <input
+                  type="radio"
+                  name="exportType"
+                  value="all"
+                  checked={exportType === 'all'}
+                  onChange={(e) => setExportType(e.target.value as ExportType)}
+                  className="h-4 w-4 text-primary-600"
+                />
+                <div>
+                  <span className="text-sm font-medium text-gray-900">{t('export.typeAll')}</span>
+                  <p className="text-xs text-gray-500">{t('export.typeAllDesc')}</p>
+                </div>
+              </label>
+              <label className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors">
+                <input
+                  type="radio"
+                  name="exportType"
+                  value="grouped"
+                  checked={exportType === 'grouped'}
+                  onChange={(e) => setExportType(e.target.value as ExportType)}
+                  className="h-4 w-4 text-primary-600"
+                />
+                <div>
+                  <span className="text-sm font-medium text-gray-900">{t('export.typeGrouped')}</span>
+                  <p className="text-xs text-gray-500">{t('export.typeGroupedDesc')}</p>
+                </div>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex gap-3 mt-6">
+          <button
+            onClick={onClose}
+            className="flex-1 btn-secondary"
+          >
+            {t('common.cancel')}
+          </button>
+          <button
+            onClick={() => onExport(format, exportType)}
+            className="flex-1 btn-primary"
+          >
+            {t('export.button')}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export const HistoryPage = () => {
   const { t } = useTranslation();
   const { user } = useAuthStore();
@@ -44,6 +152,9 @@ export const HistoryPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [offset, setOffset] = useState(0);
   const limit = 20;
+
+  // Export modal state
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
   // Filters - initialize with current month
   const [filterType, setFilterType] = useState<TransactionType | ''>('');
@@ -205,11 +316,9 @@ export const HistoryPage = () => {
     }
   };
 
-  const [exportFormat, setExportFormat] = useState<ExportFormat>('csv');
-
-  const handleExport = async () => {
+  const handleExport = async (format: ExportFormat, exportType: ExportType) => {
     try {
-      const params: { type?: string; date_from?: string; date_to?: string } = {};
+      const params: { type?: string; date_from?: string; date_to?: string; grouped?: string } = {};
       if (filterType) params.type = filterType;
       // date_from: start of day (00:00:00) - inclusive
       if (dateFrom) params.date_from = getStartOfDayUTC(dateFrom);
@@ -218,8 +327,12 @@ export const HistoryPage = () => {
         const endOfDay = new Date(dateTo + 'T23:59:59');
         params.date_to = endOfDay.toISOString();
       }
+      if (exportType === 'grouped') {
+        params.grouped = 'true';
+      }
       
-      await exportApi.exportData(exportFormat, params);
+      await exportApi.exportData(format, params);
+      setIsExportModalOpen(false);
     } catch (error) {
       console.error('Failed to export:', error);
       alert(t('errors.serverError'));
@@ -240,26 +353,21 @@ export const HistoryPage = () => {
 
   return (
     <div className="space-y-6">
+      {/* Export Modal */}
+      <ExportModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        onExport={handleExport}
+      />
+
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 className="text-2xl font-bold text-gray-900">{t('history.title')}</h1>
-        <div className="flex items-center gap-2">
-          <select
-            value={exportFormat}
-            onChange={(e) => setExportFormat(e.target.value as ExportFormat)}
-            className="input py-1.5 text-sm"
-            title={t('history.exportFormat')}
-          >
-            <option value="csv">CSV</option>
-            <option value="tsv">TSV (Google Sheets)</option>
-            <option value="xlsx">Excel (.xlsx)</option>
-          </select>
-          <button
-            onClick={handleExport}
-            className="btn-secondary text-sm"
-          >
-            {t('history.export')}
-          </button>
-        </div>
+        <button
+          onClick={() => setIsExportModalOpen(true)}
+          className="btn-secondary text-sm"
+        >
+          {t('history.export')}
+        </button>
       </div>
 
       {/* Filters */}
@@ -330,7 +438,7 @@ export const HistoryPage = () => {
         </div>
       </div>
 
-      {/* Transaction List - Cards */}
+      {/* Transaction List - Cards on mobile, Table on desktop */}
       <div className="card p-0 overflow-hidden max-w-4xl mx-auto">
         {isLoading ? (
           <div className="flex items-center justify-center h-48">
