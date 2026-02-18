@@ -45,11 +45,22 @@ export const HistoryPage = () => {
   const [offset, setOffset] = useState(0);
   const limit = 20;
 
-  // Filters
+  // Filters - initialize with current month
   const [filterType, setFilterType] = useState<TransactionType | ''>('');
   const [activeQuickFilter, setActiveQuickFilter] = useState<QuickFilter>('current_month');
-  const [dateFrom, setDateFrom] = useState('');
-  const [dateTo, setDateTo] = useState('');
+  const [dateFrom, setDateFrom] = useState(() => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    return `${year}-${month}-01`; // First day of current month
+  });
+  const [dateTo, setDateTo] = useState(() => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`; // Returns today's date
+  });
 
   // Edit state
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -58,11 +69,7 @@ export const HistoryPage = () => {
   // Get user's currency
   const userCurrency = user?.currency || 'USD';
 
-  // Initialize with current month dates
-  useEffect(() => {
-    applyQuickFilter('current_month');
-  }, []);
-
+  // Fetch transactions when filters change
   useEffect(() => {
     fetchTransactions();
   }, [offset, filterType, dateFrom, dateTo]);
