@@ -26,13 +26,17 @@
     "income": "Доходы",
     "expense": "Расходы",
     "balance": "Баланс",
-    "thisMonth": "Этот месяц",
-    "thisYear": "Этот год",
+    "thisMonth": "Текущий месяц",
+    "thisYear": "Текущий год",
     "allTime": "За все время",
+    "currentMonthTooltip": "Данные с 1-го числа текущего месяца",
+    "currentYearTooltip": "Данные с 1 января текущего года",
     "expensesByCategory": "Расходы по категориям",
     "recentTransactions": "Последние операции",
     "viewAll": "Смотреть все",
-    "addTransaction": "Добавить операцию"
+    "addTransaction": "Добавить операцию",
+    "noExpenseData": "Нет данных о расходах за этот период",
+    "total": "Итого"
   },
   "transaction": {
     "add": "Добавить операцию",

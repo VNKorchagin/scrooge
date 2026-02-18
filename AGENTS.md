@@ -95,8 +95,53 @@ Hard delete removes data permanently.
 3. Add API endpoint in routers
 4. Update frontend API client
 5. Add component/page
-6. Write tests
-7. Update i18n files
+6. Update i18n files (see i18n Guidelines below)
+7. Write tests
+8. Update documentation
+
+### i18n (Internationalization) Guidelines
+**CRITICAL: All user-facing text must support both English and Russian.**
+
+When adding new pages, components, or UI elements:
+1. **Always use `useTranslation()` hook** - Never hardcode strings
+   ```tsx
+   const { t } = useTranslation();
+   // ❌ Bad: <h1>Dashboard</h1>
+   // ✅ Good: <h1>{t('dashboard.title')}</h1>
+   ```
+
+2. **Add keys to both language files:**
+   - `frontend/src/i18n/locales/en.json`
+   - `frontend/src/i18n/locales/ru.json`
+
+3. **Use descriptive nested keys:**
+   ```json
+   {
+     "pageName": {
+       "title": "Page Title",
+       "button": "Click Me",
+       "tooltip": "This explains something"
+     }
+   }
+   ```
+
+4. **Run i18n tests to verify:**
+   ```bash
+   cd frontend && npm test -- i18n.test.ts
+   ```
+
+5. **Common translation keys:**
+   - Actions: `save`, `cancel`, `delete`, `edit`, `create`
+   - Navigation: `dashboard`, `history`, `settings`
+   - Form labels: Match the field name
+   - Errors: Use `errors.` prefix
+
+### Testing
+- Unit tests for business logic
+- Integration tests for API
+- i18n tests for translation completeness
+- Run with: `pytest -v` (backend) or `npm test` (frontend)
+- CI runs tests automatically
 
 ### Testing
 - Unit tests for business logic

@@ -26,13 +26,17 @@
     "income": "Income",
     "expense": "Expense",
     "balance": "Balance",
-    "thisMonth": "This Month",
-    "thisYear": "This Year",
+    "thisMonth": "Current Month",
+    "thisYear": "Current Year",
     "allTime": "All Time",
+    "currentMonthTooltip": "Data from the 1st day of the current month",
+    "currentYearTooltip": "Data from January 1st of the current year",
     "expensesByCategory": "Expenses by Category",
     "recentTransactions": "Recent Transactions",
     "viewAll": "View All",
-    "addTransaction": "Add Transaction"
+    "addTransaction": "Add Transaction",
+    "noExpenseData": "No expense data for this period",
+    "total": "Total"
   },
   "transaction": {
     "add": "Add Transaction",

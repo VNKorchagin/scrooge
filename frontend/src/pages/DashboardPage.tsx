@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { StatsCard } from '@/components/StatsCard';
-import { CategoryPieChart } from '@/components/CategoryPieChart';
+import { CategoryBarChart } from '@/components/CategoryBarChart';
 import { RecentTransactions } from '@/components/RecentTransactions';
 import { statsApi } from '@/api/client';
 import { useAuthStore } from '@/stores/authStore';
@@ -39,6 +39,13 @@ export const DashboardPage = () => {
     all: t('dashboard.allTime'),
   };
 
+  // Tooltip text for period explanation
+  const periodTooltips: Record<Period, string> = {
+    month: t('dashboard.currentMonthTooltip'),
+    year: t('dashboard.currentYearTooltip'),
+    all: '',
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -54,15 +61,40 @@ export const DashboardPage = () => {
         <h1 className="text-2xl font-bold text-gray-900">{t('dashboard.title')}</h1>
         
         <div className="flex items-center gap-4">
-          <select
-            value={period}
-            onChange={(e) => setPeriod(e.target.value as Period)}
-            className="input py-2 w-40"
-          >
-            <option value="month">{t('dashboard.thisMonth')}</option>
-            <option value="year">{t('dashboard.thisYear')}</option>
-            <option value="all">{t('dashboard.allTime')}</option>
-          </select>
+          <div className="relative flex items-center gap-2">
+            <select
+              value={period}
+              onChange={(e) => setPeriod(e.target.value as Period)}
+              className="input py-2 w-44"
+            >
+              <option value="month">{t('dashboard.thisMonth')}</option>
+              <option value="year">{t('dashboard.thisYear')}</option>
+              <option value="all">{t('dashboard.allTime')}</option>
+            </select>
+            
+            {/* Info tooltip */}
+            {period !== 'all' && (
+              <div className="group relative">
+                <svg 
+                  className="w-5 h-5 text-gray-400 cursor-help" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    strokeWidth={2} 
+                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" 
+                  />
+                </svg>
+                <div className="absolute right-0 bottom-full mb-2 w-64 p-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
+                  {periodTooltips[period]}
+                  <div className="absolute top-full right-2 w-2 h-2 bg-gray-800 rotate-45"></div>
+                </div>
+              </div>
+            )}
+          </div>
           
           <Link to="/add" className="btn-primary whitespace-nowrap">
             + {t('dashboard.addTransaction')}
@@ -94,7 +126,10 @@ export const DashboardPage = () => {
 
       {/* Charts and Recent Transactions */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <CategoryPieChart data={stats?.by_category || []} />
+        <CategoryBarChart 
+          data={stats?.by_category || []} 
+          currency={user?.currency}
+        />
         <RecentTransactions 
           transactions={stats?.recent_transactions || []} 
           currency={user?.currency}
