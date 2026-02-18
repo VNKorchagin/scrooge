@@ -59,6 +59,12 @@
   "history": {
     "title": "История операций",
     "filters": "Фильтры",
+    "quickFilter": "Быстрый фильтр",
+    "currentMonth": "Текущий месяц",
+    "30days": "30 дней",
+    "quarter": "Квартал",
+    "halfYear": "Полгода",
+    "year": "Год",
     "type": "Тип",
     "from": "С",
     "to": "По",

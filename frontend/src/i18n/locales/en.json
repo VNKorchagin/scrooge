@@ -59,6 +59,12 @@
   "history": {
     "title": "Transaction History",
     "filters": "Filters",
+    "quickFilter": "Quick Filter",
+    "currentMonth": "Current Month",
+    "30days": "30 Days",
+    "quarter": "Quarter",
+    "halfYear": "Half Year",
+    "year": "Year",
     "type": "Type",
     "from": "From",
     "to": "To",
