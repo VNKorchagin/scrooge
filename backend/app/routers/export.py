@@ -50,13 +50,13 @@ async def export_csv(
     for t in transactions:
         writer.writerow([
             t.id,
-            t.type.value,
-            float(t.amount),
-            t.category_name,
+            t.type.value if t.type else "",
+            float(t.amount) if t.amount else 0,
+            t.category_name or "",
             t.description or "",
-            t.transaction_date.isoformat(),
-            t.source.value,
-            t.created_at.isoformat()
+            t.transaction_date.isoformat() if t.transaction_date else "",
+            t.source.value if t.source else "manual",
+            t.created_at.isoformat() if t.created_at else ""
         ])
     
     output.seek(0)
