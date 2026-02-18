@@ -383,8 +383,8 @@ class TestExportCSV:
         # Check header includes Descriptions
         assert rows[0] == ["Income", "Expense", "Category", "Descriptions"]
         
-        # Check data rows
-        assert len(rows) == 4  # header + 3 categories
+        # Check data rows (header + 3 categories + empty row + totals)
+        assert len(rows) == 6
         
         # First row should be Income (Salary)
         assert rows[1][0] == "5000.0"  # Income
@@ -397,6 +397,11 @@ class TestExportCSV:
         assert food_row[0] == ""  # No income
         assert food_row[1] == "-100.5"  # Expense
         assert food_row[3] == "Lunch"  # Description
+        
+        # Check totals row
+        assert rows[5][0] == "5000.0"  # Total income
+        assert rows[5][1] == "-150.5"  # Total expense (-100.5 + -50)
+        assert rows[5][2] == "TOTAL"
     
     def test_export_grouped_xlsx(self, client, auth_headers, test_transactions):
         """Test grouped XLSX export."""
