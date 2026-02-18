@@ -3,10 +3,24 @@ import { useTranslation } from 'react-i18next';
 import { transactionsApi, exportApi } from '@/api/client';
 import { useAuthStore } from '@/stores/authStore';
 import { Transaction, TransactionType } from '@/types';
-import { formatCurrency, formatDateTime } from '@/utils/format';
+import { formatCurrency, formatDateTime, formatDate } from '@/utils/format';
 
 // Quick filter period types
 type QuickFilter = 'current_month' | '30_days' | 'quarter' | 'half_year' | 'year' | 'custom';
+
+// Trash icon component
+const TrashIcon = () => (
+  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+  </svg>
+);
+
+// Info/Description icon component
+const InfoIcon = () => (
+  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+  </svg>
+);
 
 export const HistoryPage = () => {
   const { t } = useTranslation();
@@ -238,22 +252,18 @@ export const HistoryPage = () => {
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-200">
-                <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">{t('transaction.date')}</th>
                 <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">{t('transaction.type')}</th>
                 <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">{t('transaction.category')}</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">{t('transaction.description')}</th>
                 <th className="text-right py-3 px-4 text-sm font-medium text-gray-500">{t('transaction.amount')}</th>
-                <th className="text-center py-3 px-4 text-sm font-medium text-gray-500">{t('transaction.action')}</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">{t('transaction.created')}</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">{t('transaction.date')}</th>
+                <th className="text-center py-3 px-4 text-sm font-medium text-gray-500 w-16"></th>
               </tr>
             </thead>
             <tbody>
               {transactions.map((transaction) => (
                 <tr key={transaction.id} className="border-b border-gray-100 hover:bg-gray-50">
-                  <td className="py-3 px-4 text-sm text-gray-900">
-                    {transaction.transaction_date 
-                      ? formatDateTime(transaction.transaction_date)
-                      : '-'}
-                  </td>
+                  {/* Type */}
                   <td className="py-3 px-4">
                     <span
                       className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
@@ -265,12 +275,27 @@ export const HistoryPage = () => {
                       {getTypeLabel(transaction.type)}
                     </span>
                   </td>
-                  <td className="py-3 px-4 text-sm text-gray-900">
-                    {transaction.category_name}
+
+                  {/* Category with description preview */}
+                  <td className="py-3 px-4">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-gray-900">{transaction.category_name}</span>
+                      {transaction.description && (
+                        <div className="group relative">
+                          <button className="text-gray-400 hover:text-gray-600 transition-colors">
+                            <InfoIcon />
+                          </button>
+                          <div className="absolute left-0 bottom-full mb-2 w-64 p-3 bg-gray-800 text-white text-sm rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10 shadow-lg">
+                            <p className="font-medium mb-1">{t('transaction.description')}:</p>
+                            <p className="text-gray-300">{transaction.description}</p>
+                            <div className="absolute top-full left-4 w-2 h-2 bg-gray-800 rotate-45"></div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </td>
-                  <td className="py-3 px-4 text-sm text-gray-500 truncate max-w-xs">
-                    {transaction.description || '-'}
-                  </td>
+
+                  {/* Amount */}
                   <td
                     className={`py-3 px-4 text-sm font-medium text-right ${
                       transaction.type === 'income'
@@ -281,12 +306,29 @@ export const HistoryPage = () => {
                     {transaction.type === 'income' ? '+' : '-'}
                     {formatCurrency(Number(transaction.amount), userCurrency)}
                   </td>
+
+                  {/* Created At */}
+                  <td className="py-3 px-4 text-sm text-gray-500">
+                    {transaction.created_at 
+                      ? formatDate(transaction.created_at)
+                      : '-'}
+                  </td>
+
+                  {/* Transaction Date */}
+                  <td className="py-3 px-4 text-sm text-gray-500">
+                    {transaction.transaction_date 
+                      ? formatDateTime(transaction.transaction_date)
+                      : '-'}
+                  </td>
+
+                  {/* Delete Button */}
                   <td className="py-3 px-4 text-center">
                     <button
                       onClick={() => handleDelete(transaction.id)}
-                      className="text-danger-500 hover:text-danger-700 text-sm"
+                      className="text-gray-400 hover:text-danger-600 transition-colors p-1"
+                      title={t('transaction.delete')}
                     >
-                      {t('transaction.delete')}
+                      <TrashIcon />
                     </button>
                   </td>
                 </tr>
