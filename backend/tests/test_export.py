@@ -73,7 +73,7 @@ async def test_transactions(db_session: AsyncSession, test_user: User):
     # Transaction with all fields
     t1 = Transaction(
         user_id=test_user.id,
-        type=TransactionType.expense,
+        type=TransactionType.EXPENSE,
         amount=Decimal("100.50"),
         category_name="Food",
         description="Lunch",
@@ -86,7 +86,7 @@ async def test_transactions(db_session: AsyncSession, test_user: User):
     # Transaction without description
     t2 = Transaction(
         user_id=test_user.id,
-        type=TransactionType.income,
+        type=TransactionType.INCOME,
         amount=Decimal("5000.00"),
         category_name="Salary",
         description=None,
@@ -99,7 +99,7 @@ async def test_transactions(db_session: AsyncSession, test_user: User):
     # Transaction without transaction_date (should not happen but test safety)
     t3 = Transaction(
         user_id=test_user.id,
-        type=TransactionType.expense,
+        type=TransactionType.EXPENSE,
         amount=Decimal("50.00"),
         category_name="Transport",
         description="Taxi",
@@ -138,7 +138,7 @@ class TestExportService:
         )
         
         assert len(result) == 1
-        assert result[0].type == TransactionType.income
+        assert result[0].type == TransactionType.INCOME
         assert result[0].category_name == "Salary"
     
     @pytest.mark.asyncio

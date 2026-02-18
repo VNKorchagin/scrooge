@@ -43,7 +43,7 @@ async def export_csv(
     for t in transactions:
         # Amount: positive for income, negative for expense
         amount = float(t.amount) if t.amount else 0
-        if t.type == TransactionType.expense:
+        if t.type == TransactionType.EXPENSE:
             amount = -amount
         
         writer.writerow([
