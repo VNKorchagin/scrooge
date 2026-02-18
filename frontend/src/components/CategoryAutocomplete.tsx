@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { categoriesApi } from '@/api/client';
 import { Category } from '@/types';
 
@@ -12,12 +13,16 @@ interface CategoryAutocompleteProps {
 export const CategoryAutocomplete = ({
   value,
   onChange,
-  label = 'Category',
+  label,
   required = false,
 }: CategoryAutocompleteProps) => {
+  const { t } = useTranslation();
   const [suggestions, setSuggestions] = useState<Category[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Use provided label or default from i18n
+  const displayLabel = label || t('transaction.category');
 
   const fetchSuggestions = useCallback(async (query: string) => {
     if (query.length < 1) {
@@ -52,7 +57,7 @@ export const CategoryAutocomplete = ({
   return (
     <div className="relative">
       <label className="block text-sm font-medium text-gray-700 mb-1">
-        {label}
+        {displayLabel}
         {required && <span className="text-danger-500 ml-1">*</span>}
       </label>
       <input
@@ -68,7 +73,7 @@ export const CategoryAutocomplete = ({
           setTimeout(() => setShowSuggestions(false), 200);
         }}
         className="input"
-        placeholder="Enter or select category"
+        placeholder={t('transaction.searchCategory')}
         required={required}
         autoComplete="off"
       />

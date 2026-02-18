@@ -1,12 +1,22 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { transactionsApi } from '@/api/client';
 import { CategoryAutocomplete } from '@/components/CategoryAutocomplete';
+import { useAuthStore } from '@/stores/authStore';
 import { TransactionType } from '@/types';
 import { format } from 'date-fns';
 
+// Currency symbols mapping
+const currencySymbols: Record<string, string> = {
+  USD: '$',
+  RUB: '₽',
+};
+
 export const AddTransactionPage = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
+  const { user } = useAuthStore();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -18,21 +28,24 @@ export const AddTransactionPage = () => {
   );
   const [description, setDescription] = useState('');
 
+  // Get currency symbol from user settings
+  const currencySymbol = currencySymbols[user?.currency || 'USD'];
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
     // Validation
     if (!amount || parseFloat(amount) <= 0) {
-      setError('Please enter a valid amount');
+      setError(t('errors.invalidAmount'));
       return;
     }
     if (!categoryName.trim()) {
-      setError('Please enter a category');
+      setError(t('errors.required'));
       return;
     }
     if (!transactionDate) {
-      setError('Please select a date');
+      setError(t('errors.required'));
       return;
     }
 
@@ -47,7 +60,7 @@ export const AddTransactionPage = () => {
       });
       navigate('/dashboard');
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Failed to create transaction');
+      setError(err.response?.data?.detail || t('errors.serverError'));
     } finally {
       setIsLoading(false);
     }
@@ -55,7 +68,7 @@ export const AddTransactionPage = () => {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Add Transaction</h1>
+      <h1 className="text-2xl font-bold text-gray-900 mb-6">{t('transaction.add')}</h1>
 
       <div className="card">
         {error && (
@@ -68,7 +81,7 @@ export const AddTransactionPage = () => {
           {/* Type Selection */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Transaction Type
+              {t('transaction.type')}
             </label>
             <div className="flex gap-4">
               <label className="flex items-center">
@@ -80,7 +93,7 @@ export const AddTransactionPage = () => {
                   onChange={(e) => setType(e.target.value as TransactionType)}
                   className="h-4 w-4 text-primary-600 focus:ring-primary-500"
                 />
-                <span className="ml-2 text-sm text-gray-700">Income</span>
+                <span className="ml-2 text-sm text-gray-700">{t('transaction.income')}</span>
               </label>
               <label className="flex items-center">
                 <input
@@ -91,7 +104,7 @@ export const AddTransactionPage = () => {
                   onChange={(e) => setType(e.target.value as TransactionType)}
                   className="h-4 w-4 text-danger-600 focus:ring-danger-500"
                 />
-                <span className="ml-2 text-sm text-gray-700">Expense</span>
+                <span className="ml-2 text-sm text-gray-700">{t('transaction.expense')}</span>
               </label>
             </div>
           </div>
@@ -99,10 +112,10 @@ export const AddTransactionPage = () => {
           {/* Amount */}
           <div>
             <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-1">
-              Amount <span className="text-danger-500">*</span>
+              {t('transaction.amount')} <span className="text-danger-500">*</span>
             </label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">{currencySymbol}</span>
               <input
                 id="amount"
                 type="number"
@@ -127,7 +140,7 @@ export const AddTransactionPage = () => {
           {/* Date */}
           <div>
             <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-1">
-              Date & Time <span className="text-danger-500">*</span>
+              {t('transaction.date')} <span className="text-danger-500">*</span>
             </label>
             <input
               id="date"
@@ -142,7 +155,7 @@ export const AddTransactionPage = () => {
           {/* Description */}
           <div>
             <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-              Description
+              {t('transaction.description')}
             </label>
             <textarea
               id="description"
@@ -150,7 +163,7 @@ export const AddTransactionPage = () => {
               onChange={(e) => setDescription(e.target.value)}
               className="input"
               rows={3}
-              placeholder="Optional description..."
+              placeholder={t('transaction.description')}
             />
           </div>
 
@@ -161,7 +174,7 @@ export const AddTransactionPage = () => {
               onClick={() => navigate('/dashboard')}
               className="flex-1 btn-secondary"
             >
-              Cancel
+              {t('transaction.cancel')}
             </button>
             <button
               type="submit"
@@ -174,10 +187,10 @@ export const AddTransactionPage = () => {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  Saving...
+                  {t('transaction.save')}...
                 </span>
               ) : (
-                'Save Transaction'
+                t('transaction.save')
               )}
             </button>
           </div>
