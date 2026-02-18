@@ -81,3 +81,64 @@ export interface RecentTransaction {
   description: string | null;
   transaction_date: string;
 }
+
+// Vault types
+export interface VaultAccount {
+  id: number;
+  user_id: number;
+  name: string;
+  account_type: 'checking' | 'savings' | 'deposit' | 'brokerage' | 'loan';
+  balance: number;
+  currency: string;
+  interest_rate?: number;
+  end_date?: string;
+  monthly_payment?: number;
+  description?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface VaultSummary {
+  total_assets: number;
+  total_liabilities: number;
+  net_worth: number;
+  checking_balance: number;
+  savings_balance: number;
+  deposits_balance: number;
+  brokerage_balance: number;
+  loans_balance: number;
+}
+
+export interface VaultProjectionPoint {
+  date: string;
+  total_assets: number;
+  total_liabilities: number;
+  net_worth: number;
+  milestones: Array<{
+    type: string;
+    name: string;
+  }>;
+}
+
+export interface VaultProjection {
+  projection: VaultProjectionPoint[];
+  summary: VaultSummary;
+  milestones: Array<{
+    date: string;
+    type: string;
+    name: string;
+    amount?: number;
+    month: number;
+  }>;
+}
+
+export interface VaultSettings {
+  id?: number;
+  user_id?: number;
+  estimated_monthly_income?: number;
+  estimated_monthly_expenses?: number;
+  default_projection_period?: string;
+  reinvest_deposits?: string;
+  created_at?: string;
+  updated_at?: string;
+}

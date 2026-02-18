@@ -58,9 +58,10 @@ scrooge/
 
 - Multi-language (EN/RU)
 - Multi-currency (USD/RUB) with CBR rates
+- **The Vault** - Financial portfolio management (assets, liabilities, deposits, loans)
 - Soft delete for users
 - Admin panel
-- CSV export
+- CSV/TSV/XLSX export
 - Real-time currency conversion
 
 ## API Structure
@@ -72,7 +73,8 @@ All endpoints prefixed with `/v1/`:
 - `/transactions/*` - Transactions
 - `/stats/*` - Statistics
 - `/currency/*` - Currency conversion
-- `/export/*` - Data export
+- `/export/*` - Data export (CSV/TSV/XLSX)
+- `/vault/*` - Financial portfolio (The Vault)
 - `/users/admin/*` - Admin operations
 
 ## Database
@@ -85,6 +87,9 @@ Hard delete removes data permanently.
 - `users` - User accounts with settings
 - `categories` - User-defined categories
 - `transactions` - Income/expense records
+- `vault_accounts` - Financial accounts (checking, savings, deposits, loans, brokerage)
+- `vault_snapshots` - Historical portfolio snapshots
+- `vault_projection_settings` - User settings for vault projections
 - `predictions` - Future ML table (placeholder)
 
 ## Development Guidelines

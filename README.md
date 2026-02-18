@@ -8,7 +8,8 @@ A personal budget tracking application with FastAPI backend and React TypeScript
 - 🏷️ Automatic category creation
 - 📊 Dashboard with statistics and charts
 - 📈 Transaction history with filters
-- 📤 CSV export
+- 🏛️ **The Vault** - Financial portfolio tracking (assets, liabilities, deposits, loans)
+- 📤 CSV/Excel/TSV export
 - 🔐 JWT authentication
 - 🌍 Multi-language support (English/Russian)
 - 💱 Multi-currency support (USD/RUB) with exchange rates
@@ -194,7 +195,19 @@ When running locally, API docs are available at:
 #### Export
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/v1/export/csv` | GET | Export transactions to CSV |
+| `/v1/export/csv` | GET | Export transactions to CSV/TSV/XLSX |
+
+#### The Vault (Financial Portfolio)
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/v1/vault/accounts` | GET | List all vault accounts |
+| `/v1/vault/accounts` | POST | Create new account (checking, savings, deposit, brokerage, loan) |
+| `/v1/vault/accounts/{id}` | PATCH | Update account |
+| `/v1/vault/accounts/{id}` | DELETE | Delete account |
+| `/v1/vault/summary` | GET | Get portfolio summary (assets, liabilities, net worth) |
+| `/v1/vault/projection` | POST | Get financial projection over time |
+| `/v1/vault/settings` | GET | Get vault settings |
+| `/v1/vault/settings` | PATCH | Update vault settings |
 
 #### Admin (Admin users only)
 | Endpoint | Method | Description |
@@ -245,6 +258,38 @@ When running locally, API docs are available at:
 - `predicted_amount`: Predicted amount
 - `confidence`: Prediction confidence
 - `created_at`: Timestamp
+
+### The Vault (Financial Portfolio)
+#### vault_accounts
+- `id`: Primary key
+- `user_id`: FK to users
+- `name`: Account name
+- `account_type`: 'checking', 'savings', 'deposit', 'brokerage', 'loan'
+- `balance`: Current balance
+- `currency`: Account currency
+- `interest_rate`: Annual interest rate (for savings/deposits/loans)
+- `end_date`: Maturity date (for deposits/loans)
+- `monthly_payment`: Monthly payment amount (for loans)
+- `description`: Optional description
+- `created_at`: Timestamp
+- `updated_at`: Timestamp
+
+#### vault_snapshots
+- `id`: Primary key
+- `user_id`: FK to users
+- `snapshot_date`: Date of snapshot
+- `total_assets`: Total assets at date
+- `total_liabilities`: Total liabilities at date
+- `net_worth`: Net worth at date
+- Breakdown by account type
+
+#### vault_projection_settings
+- `id`: Primary key
+- `user_id`: FK to users (unique)
+- `estimated_monthly_income`: Estimated monthly income
+- `estimated_monthly_expenses`: Estimated monthly expenses
+- `default_projection_period`: Default period for projections
+- `reinvest_deposits`: Reinvestment strategy setting
 
 ## Multi-language Support
 
@@ -380,7 +425,8 @@ docker-compose up -d --build
 - [ ] Bank statement import (PDF/CSV)
 - [ ] AI-powered auto-categorization
 - [ ] Telegram bot integration
-- [ ] Spending predictions
+- [ ] AI-powered savings recommendations in The Vault
+- [ ] Bond position tracking with coupon payments
 - [ ] Budget goals
 - [ ] Recurring transactions
 

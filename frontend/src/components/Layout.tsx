@@ -14,6 +14,7 @@ export const Layout = () => {
     { path: '/dashboard', label: t('nav.dashboard') },
     { path: '/add', label: t('nav.addTransaction') },
     { path: '/history', label: t('nav.history') },
+    { path: '/vault', label: t('nav.vault') },
   ];
 
   return (

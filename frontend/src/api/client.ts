@@ -191,3 +191,116 @@ export const exportApi = {
     window.URL.revokeObjectURL(url);
   },
 };
+
+// Types for Vault
+export interface VaultAccount {
+  id: number;
+  user_id: number;
+  name: string;
+  account_type: 'checking' | 'savings' | 'deposit' | 'brokerage' | 'loan';
+  balance: number;
+  currency: string;
+  interest_rate?: number;
+  end_date?: string;
+  monthly_payment?: number;
+  description?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface VaultSummary {
+  total_assets: number;
+  total_liabilities: number;
+  net_worth: number;
+  checking_balance: number;
+  savings_balance: number;
+  deposits_balance: number;
+  brokerage_balance: number;
+  loans_balance: number;
+}
+
+export interface VaultProjectionPoint {
+  date: string;
+  total_assets: number;
+  total_liabilities: number;
+  net_worth: number;
+  milestones: Array<{
+    type: string;
+    name: string;
+  }>;
+}
+
+export interface VaultProjection {
+  projection: VaultProjectionPoint[];
+  summary: VaultSummary;
+  milestones: Array<{
+    date: string;
+    type: string;
+    name: string;
+    amount?: number;
+    month: number;
+  }>;
+}
+
+export interface VaultSettings {
+  id?: number;
+  user_id?: number;
+  estimated_monthly_income?: number;
+  estimated_monthly_expenses?: number;
+  default_projection_period?: string;
+  reinvest_deposits?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+// Vault API
+export const vaultApi = {
+  getAccounts: async (): Promise<VaultAccount[]> => {
+    const response = await apiClient.get('/vault/accounts');
+    return response.data;
+  },
+  
+  createAccount: async (data: Omit<VaultAccount, 'id' | 'user_id' | 'created_at' | 'updated_at'>): Promise<VaultAccount> => {
+    const response = await apiClient.post('/vault/accounts', data);
+    return response.data;
+  },
+  
+  updateAccount: async (id: number, data: Partial<VaultAccount>): Promise<VaultAccount> => {
+    const response = await apiClient.patch(`/vault/accounts/${id}`, data);
+    return response.data;
+  },
+  
+  deleteAccount: async (id: number): Promise<void> => {
+    await apiClient.delete(`/vault/accounts/${id}`);
+  },
+  
+  getSummary: async (): Promise<VaultSummary> => {
+    const response = await apiClient.get('/vault/summary');
+    return response.data;
+  },
+  
+  getProjection: async (
+    period: string = '1_year', 
+    includeReinvestment: boolean = true,
+    monthlyIncome: number = 0,
+    monthlyExpenses: number = 0
+  ): Promise<VaultProjection> => {
+    const response = await apiClient.post('/vault/projection', {
+      period,
+      include_reinvestment: includeReinvestment,
+      estimated_monthly_income: monthlyIncome,
+      estimated_monthly_expenses: monthlyExpenses,
+    });
+    return response.data;
+  },
+  
+  getSettings: async (): Promise<VaultSettings> => {
+    const response = await apiClient.get('/vault/settings');
+    return response.data;
+  },
+  
+  updateSettings: async (data: Partial<VaultSettings>): Promise<VaultSettings> => {
+    const response = await apiClient.patch('/vault/settings', data);
+    return response.data;
+  },
+};

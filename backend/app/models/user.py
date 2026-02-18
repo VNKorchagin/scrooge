@@ -21,6 +21,9 @@ class User(Base):
     transactions = relationship("Transaction", back_populates="user", cascade="all, delete-orphan")
     categories = relationship("Category", back_populates="user", cascade="all, delete-orphan")
     predictions = relationship("Prediction", back_populates="user", cascade="all, delete-orphan")
+    vault_accounts = relationship("VaultAccount", back_populates="user", cascade="all, delete-orphan")
+    vault_snapshots = relationship("VaultSnapshot", back_populates="user", cascade="all, delete-orphan")
+    vault_projection_settings = relationship("VaultProjectionSettings", back_populates="user", uselist=False, cascade="all, delete-orphan")
     
     @property
     def is_deleted(self) -> bool:
