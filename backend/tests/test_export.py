@@ -202,22 +202,22 @@ class TestExportService:
         # Should have 3 categories: Food, Salary, Transport
         assert len(result) == 3
         
-        # Find Food category (expense)
+        # Income categories should come first
+        assert result[0]['category'] == 'Salary'  # Income first
+        assert result[0]['income'] == 5000.0
+        assert result[0]['expense'] is None
+        
+        # Then expense categories
         food = next((r for r in result if r['category'] == 'Food'), None)
         assert food is not None
-        assert food['income'] == 0.0
+        assert food['income'] is None
         assert food['expense'] == -100.5
-        
-        # Find Salary category (income)
-        salary = next((r for r in result if r['category'] == 'Salary'), None)
-        assert salary is not None
-        assert salary['income'] == 5000.0
-        assert salary['expense'] == 0.0
+        assert food['descriptions'] == 'Lunch'  # Description collected
     
     @pytest.mark.asyncio
     async def test_get_grouped_for_export_with_multiple_same_category(self, db_session: AsyncSession, test_user: User):
-        """Test grouping sums multiple transactions in same category."""
-        # Add another Food expense
+        """Test grouping sums multiple transactions and collects descriptions."""
+        # Add another Food expense with different description
         t = Transaction(
             user_id=test_user.id,
             type=TransactionType.EXPENSE,
@@ -235,6 +235,8 @@ class TestExportService:
         food = next((r for r in result if r['category'] == 'Food'), None)
         assert food is not None
         assert food['expense'] == -150.5  # -100.5 + -50.0
+        assert 'Dinner' in food['descriptions']
+        assert 'Lunch' in food['descriptions']
 
 
 class TestExportCSV:
@@ -378,17 +380,23 @@ class TestExportCSV:
         csv_reader = csv.reader(io.StringIO(content))
         rows = list(csv_reader)
         
-        # Check header
-        assert rows[0] == ["Income", "Expense", "Category"]
+        # Check header includes Descriptions
+        assert rows[0] == ["Income", "Expense", "Category", "Descriptions"]
         
         # Check data rows
         assert len(rows) == 4  # header + 3 categories
+        
+        # First row should be Income (Salary)
+        assert rows[1][0] == "5000.0"  # Income
+        assert rows[1][1] == ""  # No expense
+        assert rows[1][2] == "Salary"
         
         # Find Food row (expense)
         food_row = next((r for r in rows if r[2] == "Food"), None)
         assert food_row is not None
         assert food_row[0] == ""  # No income
         assert food_row[1] == "-100.5"  # Expense
+        assert food_row[3] == "Lunch"  # Description
     
     def test_export_grouped_xlsx(self, client, auth_headers, test_transactions):
         """Test grouped XLSX export."""

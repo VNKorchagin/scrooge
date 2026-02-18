@@ -99,14 +99,13 @@ class TransactionService:
         date_from: Optional[datetime] = None,
         date_to: Optional[datetime] = None
     ) -> List[dict]:
-        """Get transactions grouped by category for export. Returns list of dicts with category, income, expense."""
+        """Get transactions grouped by category for export. 
+        Returns list of dicts with category, income, expense, descriptions.
+        Income categories come first, then Expense."""
         from sqlalchemy import func
         
-        query = select(
-            Transaction.category_name,
-            Transaction.type,
-            func.sum(Transaction.amount).label('total_amount')
-        ).where(Transaction.user_id == user_id)
+        # First, get all transactions with descriptions
+        query = select(Transaction).where(Transaction.user_id == user_id)
         
         if type:
             query = query.where(Transaction.type == type)
@@ -120,36 +119,59 @@ class TransactionService:
             date_to = TransactionService._normalize_datetime(date_to)
             query = query.where(Transaction.transaction_date <= date_to)
         
-        # Group by category and type
-        query = query.group_by(Transaction.category_name, Transaction.type)
-        query = query.order_by(Transaction.category_name)
-        
         result = await db.execute(query)
-        rows = result.all()
+        transactions = result.scalars().all()
         
-        # Transform into grouped format: {category: {income: x, expense: y}}
+        # Group by category and collect descriptions
         grouped = {}
-        for row in rows:
-            category = row.category_name or "Uncategorized"
+        for t in transactions:
+            category = t.category_name or "Uncategorized"
             if category not in grouped:
-                grouped[category] = {'income': 0.0, 'expense': 0.0}
+                grouped[category] = {
+                    'income': 0.0, 
+                    'expense': 0.0,
+                    'descriptions': set()
+                }
             
-            amount = float(row.total_amount) if row.total_amount else 0.0
-            if row.type == TransactionType.INCOME:
-                grouped[category]['income'] = amount
+            amount = float(t.amount) if t.amount else 0.0
+            if t.type == TransactionType.INCOME:
+                grouped[category]['income'] += amount
             else:
-                grouped[category]['expense'] = -amount  # Negative for expense
+                grouped[category]['expense'] -= amount  # Negative for expense
+            
+            if t.description:
+                grouped[category]['descriptions'].add(t.description)
         
-        # Convert to list of dicts
-        result_list = []
-        for category, amounts in sorted(grouped.items()):
-            result_list.append({
+        # Convert to list of dicts - Income first, then Expense
+        income_list = []
+        expense_list = []
+        
+        for category, data in grouped.items():
+            item = {
                 'category': category,
-                'income': amounts['income'],
-                'expense': amounts['expense']
-            })
+                'income': data['income'] if data['income'] != 0 else None,
+                'expense': data['expense'] if data['expense'] != 0 else None,
+                'descriptions': '\n'.join(sorted(data['descriptions'])) if data['descriptions'] else ''
+            }
+            
+            # Determine if this is income or expense category
+            if data['income'] != 0 and data['expense'] == 0:
+                income_list.append(item)
+            elif data['expense'] != 0 and data['income'] == 0:
+                expense_list.append(item)
+            else:
+                # Mixed - add to appropriate list based on which is larger
+                if abs(data['income']) >= abs(data['expense']):
+                    income_list.append(item)
+                else:
+                    expense_list.append(item)
         
-        return result_list
+        # Sort each list by category name
+        income_list.sort(key=lambda x: x['category'])
+        expense_list.sort(key=lambda x: x['category'])
+        
+        # Return Income first, then Expense
+        return income_list + expense_list
 
     @staticmethod
     async def create(db: AsyncSession, transaction_data: TransactionCreate, user_id: int) -> Transaction:
