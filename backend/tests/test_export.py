@@ -235,6 +235,40 @@ class TestExportCSV:
         assert rows[3][0] == "-50.0"  # Amount negative for expense
         assert rows[3][3] == ""  # Transaction Date should be empty string
     
+    def test_export_tsv_format(self, client, auth_headers, test_transactions):
+        """Test TSV export format."""
+        response = client.get("/v1/export/csv?format=tsv", headers=auth_headers)
+        
+        assert response.status_code == 200
+        assert response.headers["content-type"] == "text/tab-separated-values"
+        assert ".tsv" in response.headers["content-disposition"]
+        
+        # Parse TSV response
+        content = response.content.decode('utf-8')
+        tsv_reader = csv.reader(io.StringIO(content), delimiter='\t')
+        rows = list(tsv_reader)
+        
+        # Check header
+        assert rows[0][0] == "Amount"
+        assert rows[0][1] == "Category"
+        
+        # Check data
+        assert len(rows) == 4  # header + 3 transactions
+        assert rows[1][0] == "-100.5"  # Expense negative
+        assert rows[2][0] == "5000.0"  # Income positive
+    
+    def test_export_xlsx_format(self, client, auth_headers, test_transactions):
+        """Test XLSX export format."""
+        response = client.get("/v1/export/csv?format=xlsx", headers=auth_headers)
+        
+        assert response.status_code == 200
+        assert response.headers["content-type"] == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        assert ".xlsx" in response.headers["content-disposition"]
+        
+        # Check content is valid XLSX (starts with ZIP signature)
+        content = response.content
+        assert content[:4] == b'PK\x03\x04'  # ZIP file signature
+    
     def test_export_csv_with_date_filter(self, client, auth_headers, test_transactions):
         """Test CSV export with date range filter."""
         response = client.get(
