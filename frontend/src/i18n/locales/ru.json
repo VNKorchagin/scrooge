@@ -48,6 +48,7 @@
     "save": "Сохранить",
     "cancel": "Отмена",
     "delete": "Удалить",
+    "confirmDelete": "Вы уверены, что хотите удалить эту операцию?",
     "noTransactions": "Пока нет операций",
     "searchCategory": "Введите или выберите категорию"
   },
@@ -59,7 +60,10 @@
     "to": "По",
     "all": "Все",
     "exportCSV": "Экспорт CSV",
-    "noTransactions": "Операции не найдены"
+    "noTransactions": "Операции не найдены",
+    "showing": "Показано {{start}}-{{end}} из {{total}}",
+    "previous": "Назад",
+    "next": "Вперед"
   },
   "settings": {
     "title": "Настройки",

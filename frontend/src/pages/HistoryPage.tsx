@@ -1,9 +1,13 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { transactionsApi, exportApi } from '@/api/client';
+import { useAuthStore } from '@/stores/authStore';
 import { Transaction, TransactionType } from '@/types';
-import { formatCurrency, formatDate } from '@/utils/format';
+import { formatCurrency, formatDateTime } from '@/utils/format';
 
 export const HistoryPage = () => {
+  const { t } = useTranslation();
+  const { user } = useAuthStore();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [total, setTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
@@ -14,6 +18,9 @@ export const HistoryPage = () => {
   const [filterType, setFilterType] = useState<TransactionType | ''>('');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
+
+  // Get user's currency
+  const userCurrency = user?.currency || 'USD';
 
   useEffect(() => {
     fetchTransactions();
@@ -41,14 +48,14 @@ export const HistoryPage = () => {
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this transaction?')) return;
+    if (!confirm(t('transaction.confirmDelete') || 'Are you sure you want to delete this transaction?')) return;
     
     try {
       await transactionsApi.delete(id);
       fetchTransactions();
     } catch (error) {
       console.error('Failed to delete transaction:', error);
-      alert('Failed to delete transaction');
+      alert(t('errors.serverError'));
     }
   };
 
@@ -62,22 +69,27 @@ export const HistoryPage = () => {
       await exportApi.exportCSV(params);
     } catch (error) {
       console.error('Failed to export:', error);
-      alert('Failed to export CSV');
+      alert(t('errors.serverError'));
     }
   };
 
   const totalPages = Math.ceil(total / limit);
   const currentPage = Math.floor(offset / limit) + 1;
 
+  // Translate transaction type
+  const getTypeLabel = (type: TransactionType) => {
+    return type === 'income' ? t('transaction.income') : t('transaction.expense');
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h1 className="text-2xl font-bold text-gray-900">Transaction History</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{t('history.title')}</h1>
         <button
           onClick={handleExport}
           className="btn-secondary text-sm"
         >
-          Export CSV
+          {t('history.exportCSV')}
         </button>
       </div>
 
@@ -85,7 +97,7 @@ export const HistoryPage = () => {
       <div className="card">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('history.type')}</label>
             <select
               value={filterType}
               onChange={(e) => {
@@ -94,13 +106,13 @@ export const HistoryPage = () => {
               }}
               className="input"
             >
-              <option value="">All</option>
-              <option value="income">Income</option>
-              <option value="expense">Expense</option>
+              <option value="">{t('history.all')}</option>
+              <option value="income">{t('transaction.income')}</option>
+              <option value="expense">{t('transaction.expense')}</option>
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">From</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('history.from')}</label>
             <input
               type="date"
               value={dateFrom}
@@ -112,7 +124,7 @@ export const HistoryPage = () => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">To</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('history.to')}</label>
             <input
               type="date"
               value={dateTo}
@@ -133,24 +145,26 @@ export const HistoryPage = () => {
             <div className="animate-spin h-8 w-8 border-4 border-primary-600 border-t-transparent rounded-full"></div>
           </div>
         ) : transactions.length === 0 ? (
-          <p className="text-gray-500 text-center py-8">No transactions found</p>
+          <p className="text-gray-500 text-center py-8">{t('history.noTransactions')}</p>
         ) : (
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-200">
-                <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Date</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Type</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Category</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Description</th>
-                <th className="text-right py-3 px-4 text-sm font-medium text-gray-500">Amount</th>
-                <th className="text-center py-3 px-4 text-sm font-medium text-gray-500">Action</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">{t('transaction.date')}</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">{t('transaction.type')}</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">{t('transaction.category')}</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">{t('transaction.description')}</th>
+                <th className="text-right py-3 px-4 text-sm font-medium text-gray-500">{t('transaction.amount')}</th>
+                <th className="text-center py-3 px-4 text-sm font-medium text-gray-500">{t('transaction.action')}</th>
               </tr>
             </thead>
             <tbody>
               {transactions.map((transaction) => (
                 <tr key={transaction.id} className="border-b border-gray-100 hover:bg-gray-50">
                   <td className="py-3 px-4 text-sm text-gray-900">
-                    {formatDate(transaction.transaction_date)}
+                    {transaction.transaction_date 
+                      ? formatDateTime(transaction.transaction_date)
+                      : '-'}
                   </td>
                   <td className="py-3 px-4">
                     <span
@@ -160,7 +174,7 @@ export const HistoryPage = () => {
                           : 'bg-danger-100 text-danger-700'
                       }`}
                     >
-                      {transaction.type}
+                      {getTypeLabel(transaction.type)}
                     </span>
                   </td>
                   <td className="py-3 px-4 text-sm text-gray-900">
@@ -177,14 +191,14 @@ export const HistoryPage = () => {
                     }`}
                   >
                     {transaction.type === 'income' ? '+' : '-'}
-                    {formatCurrency(transaction.amount)}
+                    {formatCurrency(Number(transaction.amount), userCurrency)}
                   </td>
                   <td className="py-3 px-4 text-center">
                     <button
                       onClick={() => handleDelete(transaction.id)}
                       className="text-danger-500 hover:text-danger-700 text-sm"
                     >
-                      Delete
+                      {t('transaction.delete')}
                     </button>
                   </td>
                 </tr>
@@ -197,7 +211,7 @@ export const HistoryPage = () => {
         {totalPages > 1 && (
           <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
             <p className="text-sm text-gray-500">
-              Showing {offset + 1}-{Math.min(offset + limit, total)} of {total}
+              {t('history.showing', { start: offset + 1, end: Math.min(offset + limit, total), total })}
             </p>
             <div className="flex gap-2">
               <button
@@ -205,14 +219,14 @@ export const HistoryPage = () => {
                 disabled={currentPage === 1}
                 className="btn-secondary text-sm disabled:opacity-50"
               >
-                Previous
+                {t('history.previous')}
               </button>
               <button
                 onClick={() => setOffset(offset + limit)}
                 disabled={currentPage >= totalPages}
                 className="btn-secondary text-sm disabled:opacity-50"
               >
-                Next
+                {t('history.next')}
               </button>
             </div>
           </div>
