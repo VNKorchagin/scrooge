@@ -12,6 +12,15 @@ from app.services.transaction_service import TransactionService
 router = APIRouter()
 
 
+class TransactionListResponse:
+    """Response model for transaction list."""
+    def __init__(self, items: List[Transaction], total: int, limit: int, offset: int):
+        self.items = items
+        self.total = total
+        self.limit = limit
+        self.offset = offset
+
+
 @router.get("", response_model=dict)
 async def list_transactions(
     type: Optional[TransactionType] = Query(None),
@@ -35,8 +44,11 @@ async def list_transactions(
     
     transactions, total = await TransactionService.get_list(db, current_user_id, filters)
     
+    # Convert SQLAlchemy models to Pydantic schemas
+    transaction_schemas = [Transaction.model_validate(t) for t in transactions]
+    
     return {
-        "items": transactions,
+        "items": transaction_schemas,
         "total": total,
         "limit": limit,
         "offset": offset
